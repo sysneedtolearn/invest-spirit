@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🧚 投资精灵 - 模拟盘</title>
+<style>
+:root{--bg:#0a0a12;--card:#13132a;--card-hover:#1a1a36;--accent:#7c5cfc;--accent-light:#a78bfa;--accent-glow:rgba(124,92,252,.2);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--red:#ef4444;--red-bg:rgba(239,68,68,.1);--yellow:#eab308;--yellow-bg:rgba(234,179,8,.1);--text:#e2e8f0;--text-dim:#8892a8;--border:#1e1e3a;--border-light:#2a2a4a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+.header{display:flex;justify-content:space-between;align-items:flex-start;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.logo-area{display:flex;align-items:center;gap:16px}
+.logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--accent),#c084fc);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 20px var(--accent-glow)}
+.header h1{font-size:22px;font-weight:700}
+.header .subtitle{color:var(--text-dim);font-size:13px;margin-top:2px}
+.header-right{text-align:right}
+.total-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.total-amount{font-size:32px;font-weight:800;margin-top:4px}
+.total-profit{font-size:14px;margin-top:2px}
+.last-update{font-size:11px;color:var(--text-dim);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px}
+.stat{background:var(--card);border-radius:14px;padding:18px;border:1px solid var(--border);transition:transform .15s,box-shadow .15s}
+.stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.stat .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px}
+.stat .val{font-size:22px;font-weight:700;margin-top:6px}
+.stat .sub{font-size:12px;margin-top:3px}
+.tabs{display:flex;gap:2px;margin-bottom:24px;background:var(--card);border-radius:12px;padding:3px;width:fit-content;border:1px solid var(--border)}
+.tab{padding:10px 28px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text-dim);transition:all .2s;border:none;background:none}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--accent-glow)}
+.tbl-wrap{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;margin-bottom:24px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:14px 18px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-dim);border-bottom:1px solid var(--border);font-weight:600;background:rgba(0,0,0,.2)}
+td{padding:16px 18px;font-size:14px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--card-hover)}
+.fname{font-weight:600;margin-bottom:2px}
+.fcode{font-size:12px;color:var(--text-dim)}
+.alloc-section{margin-bottom:24px}
+.alloc-card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:24px}
+.alloc-card h3{font-size:14px;font-weight:600;margin-bottom:16px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.alloc-bar{display:flex;flex-direction:column;gap:10px}
+.alloc-item{display:flex;align-items:center;gap:10px}
+.alloc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.alloc-name{font-size:13px;flex:1}
+.alloc-pct{font-size:13px;font-weight:600;min-width:50px;text-align:right}
+.bar-track{height:6px;background:var(--border);border-radius:3px;flex:2}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.timeline{position:relative;padding-left:36px}
+.timeline::before{content:'';position:absolute;left:13px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--accent),var(--border))}
+.tl-item{position:relative;margin-bottom:20px;background:var(--card);border-radius:14px;padding:24px;border:1px solid var(--border);transition:transform .15s}
+.tl-item:hover{transform:translateX(4px)}
+.tl-item::before{content:'';position:absolute;left:-29px;top:28px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 0 12px var(--accent-glow)}
+.tl-date{font-size:13px;color:var(--accent-light);font-weight:600;margin-bottom:10px}
+.tl-text{font-size:14px;line-height:1.8;margin-bottom:14px}
+.tl-ops{display:flex;flex-wrap:wrap;gap:8px}
+.tag{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.tag-buy{background:var(--green-bg);color:var(--green)}
+.tag-sell{background:var(--red-bg);color:var(--red)}
+.tag-hold{background:var(--yellow-bg);color:var(--yellow)}
+.op-card{background:var(--card);border-radius:14px;padding:22px;border:1px solid var(--border);margin-bottom:14px;transition:transform .15s}
+.op-card:hover{transform:translateY(-2px)}
+.op-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.op-head-left{display:flex;align-items:center;gap:10px}
+.op-type{padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.op-fund{font-weight:600;font-size:15px}
+.op-code{font-size:12px;color:var(--text-dim)}
+.op-amt{font-size:20px;font-weight:700}
+.op-meta{font-size:12px;color:var(--text-dim);margin-bottom:12px}
+.op-reason{font-size:13px;color:var(--text);line-height:1.7;padding:14px 16px;background:rgba(124,92,252,.04);border-radius:10px;border-left:3px solid var(--accent)}
+.noop-card{background:var(--card);border-radius:14px;padding:22px;border:1px solid var(--border);margin-bottom:14px}
+.noop-head{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--yellow);margin-bottom:8px}
+.noop-text{font-size:13px;color:var(--text-dim);line-height:1.7}
+.empty{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.empty .em{font-size:48px;margin-bottom:16px}
+.empty p{font-size:14px;max-width:400px;margin:0 auto;line-height:1.7}
+.loading{display:flex;justify-content:center;align-items:center;padding:80px;color:var(--text-dim)}
+.spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-right:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.positive{color:var(--green)}.negative{color:var(--red)}.neutral{color:var(--text-dim)}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}.container{padding:14px}.header{flex-direction:column;gap:20px}.header-right{text-align:left}.total-amount{font-size:26px}.op-head{flex-direction:column;align-items:flex-start}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div class="logo-area"><div class="logo">🧚</div><div><h1>投资精灵</h1><div class="subtitle">场外基金模拟盘 · AI 驱动决策</div></div></div>
+<div class="header-right">
+<div class="total-label">总资产</div>
+<div class="total-amount" id="totalAssets">--</div>
+<div class="total-profit" id="totalProfitHeader">--</div>
+<div class="last-update" id="lastUpdate"></div>
+</div></div>
+<div class="stats">
+<div class="stat"><div class="label">初始本金</div><div class="val" id="s_capital">--</div></div>
+<div class="stat"><div class="label">可用现金</div><div class="val" id="s_cash">--</div></div>
+<div class="stat"><div class="label">持仓市值</div><div class="val" id="s_posval">--</div></div>
+<div class="stat"><div class="label">总收益</div><div class="val" id="s_profit">--</div><div class="sub" id="s_profitRate">--</div></div>
+<div class="stat"><div class="label">持仓数量</div><div class="val" id="s_count">--</div></div>
+<div class="stat"><div class="label">运行天数</div><div class="val" id="s_days">--</div></div>
+</div>
+<div class="tabs" id="tabBar">
+<button class="tab active" data-tab="positions">💼 持仓总览</button>
+<button class="tab" data-tab="timeline">📅 时间轨迹</button>
+<button class="tab" data-tab="operations">📋 操作记录</button>
+</div>
+<div id="tab-positions" class="tab-content"><div id="allocSection"></div><div id="positionsTable" class="tbl-wrap"><div class="loading"><div class="spinner"></div>加载中...</div></div></div>
+<div id="tab-timeline" class="tab-content" style="display:none"><div id="timelineBox"><div class="loading"><div class="spinner"></div>加载中...</div></div></div>
+<div id="tab-operations" class="tab-content" style="display:none"><div id="opsBox"><div class="loading"><div class="spinner"></div>加载中...</div></div></div>
+</div>
+<script>
+const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
+let D={};
+document.getElementById('tabBar').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));document.getElementById('tab-'+t.dataset.tab).style.display='block';t.classList.add('active')});
+function $(id){return document.getElementById(id)}
+function fmtCny(n){return'\u00a5'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtPct(n){return(n>=0?'+':'')+Number(n||0).toFixed(2)+'%'}
+function cls(n){return n>0.001?'positive':n<-0.001?'negative':'neutral'}
+
+async function loadAll(){
+  try{
+    const [p,o,r,c]=await Promise.all([
+      fetch('data/portfolio.json').then(r=>r.json()),
+      fetch('data/operations.json').then(r=>r.json()),
+      fetch('data/daily-reports.json').then(r=>r.json()),
+      fetch('data/config.json').then(r=>r.json())
+    ]);
+    D={portfolio:p,operations:o,reports:r,config:c};
+    render();
+  }catch(e){console.error('load fail',e)}
+}
+
+function render(){
+  const p=D.portfolio,c=D.config,ops=D.operations?.operations||[],rpts=D.reports?.reports||[];
+  if(!p)return;
+  const posVal=p.positions.reduce((s,x)=>s+x.currentValue,0);
+  const totalAssets=p.availableCash+posVal;
+  const profit=posVal-p.totalInvested;
+  const profitRate=p.totalInvested>0?(profit/p.totalInvested)*100:0;
+  $('totalAssets').textContent=fmtCny(totalAssets);
+  const ph=$('totalProfitHeader');
+  ph.textContent='收益 '+fmtCny(profit)+' ('+fmtPct(profitRate)+')';
+  ph.className='total-profit '+cls(profit);
+  if(p.lastUpdated)$('lastUpdate').textContent='更新于 '+p.lastUpdated;
+  $('s_capital').textContent=fmtCny(p.totalCapital);
+  $('s_cash').textContent=fmtCny(p.availableCash);
+  $('s_posval').textContent=fmtCny(posVal);
+  const sp=$('s_profit');sp.textContent=fmtCny(profit);sp.className='val '+cls(profit);
+  const sr=$('s_profitRate');sr.textContent=fmtPct(profitRate);sr.className='sub '+cls(profitRate);
+  $('s_count').textContent=p.positions.length;
+  if(c?.created){const days=Math.max(0,Math.floor((Date.now()-new Date(c.created+'T00:00:00+08:00').getTime())/86400000));$('s_days').textContent=days||'< 1'}
+  renderPositions(p,totalAssets);renderTimeline(rpts,ops);renderOperations(ops,rpts);
+}
+
+function renderPositions(p,totalAssets){
+  const al=$('allocSection');
+  if(p.positions.length){
+    let cashPct=p.availableCash/totalAssets*100;
+    let bars=p.positions.map((pos,i)=>{const pct=pos.currentValue/totalAssets*100;const color=COLORS[i%COLORS.length];return'<div class="alloc-item"><div class="alloc-dot" style="background:'+color+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>'}).join('');
+    bars+='<div class="alloc-item"><div class="alloc-dot" style="background:var(--text-dim)"></div><div class="alloc-name">现金</div><div class="bar-track"><div class="bar-fill" style="width:'+cashPct+'%;background:var(--text-dim)"></div></div><div class="alloc-pct">'+cashPct.toFixed(1)+'%</div></div>';
+    al.innerHTML='<div class="alloc-section"><div class="alloc-card"><h3>📊 仓位分布</h3><div class="alloc-bar">'+bars+'</div></div></div>';
+  }else{al.innerHTML=''}
+  const tbl=$('positionsTable');
+  if(!p.positions.length){tbl.innerHTML='<div class="empty"><div class="em">🧚</div><p>投资精灵正在分析市场，还未建仓。</p></div>';return}
+  let html='<table><thead><tr><th>基金</th><th>持仓成本</th><th>当前市值</th><th>收益</th><th>收益率</th><th>仓位占比</th></tr></thead><tbody>';
+  p.positions.forEach((pos,i)=>{const profit=pos.currentValue-pos.totalCost;const rate=pos.totalCost>0?(profit/pos.totalCost)*100:0;const ratio=pos.currentValue/totalAssets*100;const dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+COLORS[i%COLORS.length]+';margin-right:8px"></span>';
+  html+='<tr><td>'+dot+'<span class="fname">'+pos.name+'</span><br><span class="fcode">'+pos.code+' · 净值 '+pos.currentNav+'</span></td><td>'+fmtCny(pos.totalCost)+'</td><td>'+fmtCny(pos.currentValue)+'</td><td class="'+cls(profit)+'">'+fmtCny(profit)+'</td><td class="'+cls(rate)+'">'+fmtPct(rate)+'</td><td>'+ratio.toFixed(1)+'%</td></tr>'});
+  html+='</tbody></table>';tbl.innerHTML=html;
+}
+
+function renderTimeline(rpts,ops){
+  const box=$('timelineBox');
+  if(!rpts.length){box.innerHTML='<div class="empty"><div class="em">📅</div><p>暂无分析记录。</p></div>';return}
+  const sorted=[...rpts].sort((a,b)=>b.date.localeCompare(a.date));
+  let html='<div class="timeline">';
+  sorted.forEach(r=>{const dayOps=ops.filter(o=>o.date===r.date);
+  html+='<div class="tl-item"><div class="tl-date">'+r.date+' '+(r.marketStatus||'')+'</div><div class="tl-text">'+r.summary.replace(/\n/g,'<br>')+'</div><div class="tl-ops">';
+  if(dayOps.length){dayOps.forEach(o=>{const t=(o.type==='建仓'||o.type==='加仓')?'tag-buy':(o.type==='减仓'||o.type==='清仓')?'tag-sell':'tag-hold';html+='<span class="tag '+t+'">'+o.type+' '+o.fundName+' '+fmtCny(o.amount)+'</span>'})}
+  else{html+='<span class="tag tag-hold">📌 今日无操作</span>'}
+  html+='</div></div>'});html+='</div>';box.innerHTML=html;
+}
+
+function renderOperations(ops,rpts){
+  const box=$('opsBox');
+  if(!ops.length&&!rpts.some(r=>r.noOpReason)){box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。</p></div>';return}
+  const sorted=[...ops].sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  let html='';
+  sorted.forEach(o=>{const isBuy=o.type==='建仓'||o.type==='加仓';const t=isBuy?'tag-buy':'tag-sell';const sign=isBuy?'-':'+';
+  html+='<div class="op-card"><div class="op-head"><div class="op-head-left"><span class="op-type '+t+'">'+o.type+'</span><span class="op-fund">'+o.fundName+'</span><span class="op-code">'+o.fundCode+'</span></div><div class="op-amt '+(isBuy?'':'positive')+'">'+sign+fmtCny(o.amount)+'</div></div><div class="op-meta">'+o.date+' '+o.time+' · 净值 '+o.nav+' · 份额 '+(o.shares?.toFixed(2)||'--')+'</div><div class="op-reason">💡 '+o.reason+'</div></div>'});
+  rpts.filter(r=>r.noOpReason).sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{html+='<div class="noop-card"><div class="noop-head">📌 '+r.date+' — 未操作</div><div class="noop-text">'+r.noOpReason+'</div></div>'});
+  box.innerHTML=html;
+}
+
+loadAll();
+</script>
+</body>
+</html>
