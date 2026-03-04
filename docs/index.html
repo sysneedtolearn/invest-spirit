@@ -116,7 +116,7 @@ const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec48
 let D={};
 document.getElementById('tabBar').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));document.getElementById('tab-'+t.dataset.tab).style.display='block';t.classList.add('active')});
 function $(id){return document.getElementById(id)}
-function fmtCny(n){return'\u00a5'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtCny(n){return '\u00a5'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtPct(n){return(n>=0?'+':'')+Number(n||0).toFixed(2)+'%'}
 function cls(n){return n>0.001?'positive':n<-0.001?'negative':'neutral'}
 
@@ -159,7 +159,7 @@ function renderPositions(p,totalAssets){
   const al=$('allocSection');
   if(p.positions.length){
     let cashPct=p.availableCash/totalAssets*100;
-    let bars=p.positions.map((pos,i)=>{const pct=pos.currentValue/totalAssets*100;const color=COLORS[i%COLORS.length];return'<div class="alloc-item"><div class="alloc-dot" style="background:'+color+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>'}).join('');
+    let bars=p.positions.map((pos,i)=>{const pct=pos.currentValue/totalAssets*100;const color=COLORS[i%COLORS.length];return '<div class="alloc-item"><div class="alloc-dot" style="background:'+color+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>'}).join('');
     bars+='<div class="alloc-item"><div class="alloc-dot" style="background:var(--text-dim)"></div><div class="alloc-name">现金</div><div class="bar-track"><div class="bar-fill" style="width:'+cashPct+'%;background:var(--text-dim)"></div></div><div class="alloc-pct">'+cashPct.toFixed(1)+'%</div></div>';
     al.innerHTML='<div class="alloc-section"><div class="alloc-card"><h3>📊 仓位分布</h3><div class="alloc-bar">'+bars+'</div></div></div>';
   }else{al.innerHTML=''}
@@ -178,14 +178,13 @@ function renderTimeline(rpts,ops){
   let html='<div class="timeline">';
   sorted.forEach(r=>{const dayOps=ops.filter(o=>o.date===r.date);
   html+='<div class="tl-item"><div class="tl-date">'+r.date+' '+(r.marketStatus||'')+'</div><div class="tl-text">'+r.summary.replace(/\n/g,'<br>')+'</div><div class="tl-ops">';
-  if(dayOps.length){dayOps.forEach(o=>{const t=(o.type==='建仓'||o.type==='加仓')?'tag-buy':(o.type==='减仓'||o.type==='清仓')?'tag-sell':'tag-hold';html+='<span class="tag '+t+'">'+o.type+' '+o.fundName+' '+fmtCny(o.amount)+'</span>'})}
-  else{html+='<span class="tag tag-hold">📌 今日无操作</span>'}
+  if(dayOps.length){dayOps.forEach(o=>{const t=(o.type==='建仓'||o.type==='加仓')?'tag-buy':(o.type==='减仓'||o.type==='清仓')?'tag-sell':'tag-hold';html+='<span class="tag '+t+'">'+o.type+' '+o.fundName+' '+fmtCny(o.amount)+'</span>'})}else{html+='<span class="tag tag-hold">📌 今日无操作</span>'}
   html+='</div></div>'});html+='</div>';box.innerHTML=html;
 }
 
 function renderOperations(ops,rpts){
   const box=$('opsBox');
-  if(!ops.length&&!rpts.some(r=>r.noOpReason)){box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。</p></div>';return}
+  if(!ops.length){box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。</p></div>';return}
   const sorted=[...ops].sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
   let html='';
   sorted.forEach(o=>{const isBuy=o.type==='建仓'||o.type==='加仓';const t=isBuy?'tag-buy':'tag-sell';const sign=isBuy?'-':'+';
