@@ -628,21 +628,69 @@
     $('chartModal').addEventListener('click', e => { if(e.target === $('chartModal')) hideChart(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape') hideChart(); });
 
-    function fetchFundJsonp(code, startDate, endDate) {
+    function fetchFundHistory(code, startDate, endDate) {
       return new Promise((resolve, reject) => {
-        const cbName = '_fundcb_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
         const timeout = setTimeout(() => { cleanup(); reject(new Error('请求超时')); }, 10000);
+        const script = document.createElement('script');
+        const id = '_fh_' + Date.now();
+        script.id = id;
+
         function cleanup() {
           clearTimeout(timeout);
-          delete window[cbName];
-          const el = document.getElementById(cbName);
+          const el = document.getElementById(id);
           if (el) el.remove();
         }
-        window[cbName] = function(data) { cleanup(); resolve(data); };
-        const script = document.createElement('script');
-        script.id = cbName;
-        script.src = `https://api.fund.eastmoney.com/f10/lsjz?callback=${cbName}&fundCode=${code}&pageIndex=1&pageSize=90&startDate=${startDate}&endDate=${endDate}`;
-        script.onerror = function() { cleanup(); reject(new Error('网络错误')); };
+
+        // This API returns: var apidata={content:"<table>...</table>",records:N,pages:P,curpage:C};
+        // We intercept it by defining a setter on window.apidata
+        const origDesc = Object.getOwnPropertyDescriptor(window, 'apidata');
+        let captured = null;
+        Object.defineProperty(window, 'apidata', {
+          configurable: true,
+          set(val) {
+            captured = val;
+            // Restore original
+            delete window.apidata;
+            if (origDesc) Object.defineProperty(window, 'apidata', origDesc);
+          },
+          get() { return captured; }
+        });
+
+        script.onload = function() {
+          cleanup();
+          if (captured && captured.content) {
+            // Parse HTML table into data array
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(captured.content, 'text/html');
+            const rows = doc.querySelectorAll('tbody tr');
+            const items = [];
+            rows.forEach(row => {
+              const cells = row.querySelectorAll('td');
+              if (cells.length >= 4) {
+                items.push({
+                  FSRQ: cells[0].textContent.trim(),
+                  DWJZ: cells[1].textContent.trim(),
+                  LJJZ: cells[2].textContent.trim(),
+                  JZZZL: cells[3].textContent.trim().replace('%','')
+                });
+              }
+            });
+            resolve(items);
+          } else {
+            // Restore
+            delete window.apidata;
+            if (origDesc) Object.defineProperty(window, 'apidata', origDesc);
+            reject(new Error('无数据'));
+          }
+        };
+        script.onerror = function() {
+          cleanup();
+          delete window.apidata;
+          if (origDesc) Object.defineProperty(window, 'apidata', origDesc);
+          reject(new Error('网络错误'));
+        };
+
+        script.src = `https://fundf10.eastmoney.com/F10DataApi.aspx?type=lsjz&code=${code}&sdate=${startDate}&edate=${endDate}&per=90&page=1`;
         document.head.appendChild(script);
       });
     }
@@ -656,9 +704,10 @@
       try {
         const endDate = new Date().toISOString().slice(0,10);
         const sd = new Date(Date.now() - 100*86400000).toISOString().slice(0,10);
-        const data = await fetchFundJsonp(code, sd, endDate);
+        const rawItems = await fetchFundHistory(code, sd, endDate);
 
-        const items = (data?.Data?.LSJZList || []).reverse(); // oldest first
+        // rawItems are newest-first from HTML table, reverse to oldest-first
+        const items = rawItems.reverse();
         if (!items.length) {
           $('cmBody').innerHTML = '<div class="cm-loading">暂无历史数据</div>';
           return;
