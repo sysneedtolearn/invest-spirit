@@ -1,1 +1,65 @@
-{"totalCapital":200000,"availableCash":100000,"totalInvested":100000,"positions":[{"code":"001475","name":"易方达国防军工混合A","totalCost":25000,"totalShares":12692.93,"avgCostNav":1.9696,"currentNav":1.9696,"currentValue":25000,"firstBuyDate":"2026-03-04","lastOpDate":"2026-03-04"},{"code":"008888","name":"华夏国证半导体芯片ETF联接C","totalCost":20000,"totalShares":12803.28,"avgCostNav":1.5621,"currentNav":1.5621,"currentValue":20000,"firstBuyDate":"2026-03-04","lastOpDate":"2026-03-04"},{"code":"003834","name":"华夏能源革新股票A","totalCost":20000,"totalShares":5863.38,"avgCostNav":3.411,"currentNav":3.411,"currentValue":20000,"firstBuyDate":"2026-03-04","lastOpDate":"2026-03-04"},{"code":"519674","name":"银河创新成长混合A","totalCost":20000,"totalShares":2225.11,"avgCostNav":8.9883,"currentNav":8.9883,"currentValue":20000,"firstBuyDate":"2026-03-04","lastOpDate":"2026-03-04"},{"code":"012348","name":"天弘恒生科技ETF联接A","totalCost":15000,"totalShares":22338.05,"avgCostNav":0.6715,"currentNav":0.6715,"currentValue":15000,"firstBuyDate":"2026-03-04","lastOpDate":"2026-03-04"}],"totalProfit":0,"totalProfitRate":0,"lastUpdated":"2026-03-04 16:09:03"}
+{
+  "totalCapital": 200000,
+  "availableCash": 100000,
+  "totalInvested": 101132.95,
+  "positions": [
+    {
+      "code": "001475",
+      "name": "易方达国防军工混合A",
+      "totalCost": 25000,
+      "totalShares": 12692.93257514216,
+      "avgCostNav": 1.9696,
+      "currentNav": 1.9751,
+      "currentValue": 25069.81,
+      "firstBuyDate": "2026-03-04",
+      "lastOpDate": "2026-03-04"
+    },
+    {
+      "code": "008888",
+      "name": "华夏国证半导体芯片ETF联接C",
+      "totalCost": 20000,
+      "totalShares": 12803.277639075603,
+      "avgCostNav": 1.5621,
+      "currentNav": 1.5967,
+      "currentValue": 20442.99,
+      "firstBuyDate": "2026-03-04",
+      "lastOpDate": "2026-03-04"
+    },
+    {
+      "code": "003834",
+      "name": "华夏能源革新股票A",
+      "totalCost": 20000,
+      "totalShares": 5863.383172090296,
+      "avgCostNav": 3.411,
+      "currentNav": 3.4522,
+      "currentValue": 20241.57,
+      "firstBuyDate": "2026-03-04",
+      "lastOpDate": "2026-03-04"
+    },
+    {
+      "code": "519674",
+      "name": "银河创新成长混合A",
+      "totalCost": 20000,
+      "totalShares": 2225.114871555244,
+      "avgCostNav": 8.9883,
+      "currentNav": 9.1745,
+      "currentValue": 20414.32,
+      "firstBuyDate": "2026-03-04",
+      "lastOpDate": "2026-03-04"
+    },
+    {
+      "code": "012348",
+      "name": "天弘恒生科技ETF联接A",
+      "totalCost": 15000,
+      "totalShares": 22338.04914370812,
+      "avgCostNav": 0.6715,
+      "currentNav": 0.6699,
+      "currentValue": 14964.26,
+      "firstBuyDate": "2026-03-04",
+      "lastOpDate": "2026-03-04"
+    }
+  ],
+  "totalProfit": 1132.95,
+  "totalProfitRate": 0.5665,
+  "lastUpdated": "2026-03-05 15:28:00"
+}
