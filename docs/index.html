@@ -619,6 +619,25 @@
     $('chartModal').addEventListener('click', e => { if(e.target === $('chartModal')) hideChart(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape') hideChart(); });
 
+    function fetchFundJsonp(code, startDate, endDate) {
+      return new Promise((resolve, reject) => {
+        const cbName = '_fundcb_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+        const timeout = setTimeout(() => { cleanup(); reject(new Error('请求超时')); }, 10000);
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[cbName];
+          const el = document.getElementById(cbName);
+          if (el) el.remove();
+        }
+        window[cbName] = function(data) { cleanup(); resolve(data); };
+        const script = document.createElement('script');
+        script.id = cbName;
+        script.src = `https://api.fund.eastmoney.com/f10/lsjz?callback=${cbName}&fundCode=${code}&pageIndex=1&pageSize=90&startDate=${startDate}&endDate=${endDate}`;
+        script.onerror = function() { cleanup(); reject(new Error('网络错误')); };
+        document.head.appendChild(script);
+      });
+    }
+
     async function showChart(code, name) {
       $('chartModal').classList.add('show');
       $('cmTitle').textContent = name;
@@ -626,21 +645,9 @@
       $('cmBody').innerHTML = '<div class="cm-loading"><div class="spinner"></div>加载历史净值...</div>';
 
       try {
-        // Fetch historical NAV via CORS proxy or direct
         const endDate = new Date().toISOString().slice(0,10);
         const sd = new Date(Date.now() - 100*86400000).toISOString().slice(0,10);
-        const apiUrl = `https://api.fund.eastmoney.com/f10/lsjz?fundCode=${code}&pageIndex=1&pageSize=90&startDate=${sd}&endDate=${endDate}`;
-
-        let data;
-        try {
-          const r = await fetch(apiUrl, { headers:{ 'Referer':'http://fundf10.eastmoney.com/' } });
-          data = await r.json();
-        } catch(e) {
-          // Try CORS proxy fallback
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-          const r2 = await fetch(proxyUrl);
-          data = await r2.json();
-        }
+        const data = await fetchFundJsonp(code, sd, endDate);
 
         const items = (data?.Data?.LSJZList || []).reverse(); // oldest first
         if (!items.length) {
