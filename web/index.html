@@ -388,9 +388,10 @@
       if (!p) return;
 
       const posVal = p.positions.reduce((s,x) => s + x.currentValue, 0);
+      const totalCost = p.positions.reduce((s,x) => s + x.totalCost, 0);
       const totalAssets = p.availableCash + posVal;
-      const profit = posVal - p.totalInvested;
-      const profitRate = p.totalInvested > 0 ? (profit/p.totalInvested)*100 : 0;
+      const profit = totalAssets - p.totalCapital;
+      const profitRate = p.totalCapital > 0 ? (profit/p.totalCapital)*100 : 0;
 
       $('totalAssets').textContent = fmtCny(totalAssets);
       $('totalAssets').className = 'total-amount';
