@@ -367,7 +367,19 @@
         D = await r.json();
         render();
       } catch(e) {
-        console.error('加载失败', e);
+        console.warn('API 不可用，尝试加载静态数据...', e);
+        try {
+          const [p, o, r2, c] = await Promise.all([
+            fetch('data/portfolio.json').then(r=>r.json()),
+            fetch('data/operations.json').then(r=>r.json()),
+            fetch('data/daily-reports.json').then(r=>r.json()),
+            fetch('config.json').then(r=>r.json()).catch(()=>({}))
+          ]);
+          D = { portfolio: p, operations: o, reports: r2, config: c };
+          render();
+        } catch(e2) {
+          console.error('静态数据也加载失败', e2);
+        }
       }
     }
 
