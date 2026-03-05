@@ -771,12 +771,12 @@
       function yPos(v) { return padT + cH - ((v - minNav) / navRange) * cH; }
 
       // Background
-      ctx.fillStyle = '#0d0d1a';
+      ctx.fillStyle = '#131525';
       ctx.fillRect(0, 0, W, H);
 
       // Grid lines
       const gridLines = 5;
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4,4]);
       for (let i = 0; i <= gridLines; i++) {
@@ -788,7 +788,7 @@
 
         // Y-axis labels
         const val = maxNav - (navRange / gridLines) * i;
-        ctx.fillStyle = '#666';
+        ctx.fillStyle = '#999';
         ctx.font = '11px -apple-system, sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(val.toFixed(4), padL - 8, y + 4);
@@ -796,7 +796,7 @@
       ctx.setLineDash([]);
 
       // X-axis labels
-      ctx.fillStyle = '#666';
+      ctx.fillStyle = '#999';
       ctx.font = '11px -apple-system, sans-serif';
       ctx.textAlign = 'center';
       const labelStep = Math.max(1, Math.floor(n / 6));
@@ -812,8 +812,8 @@
 
       // Area gradient
       const grad = ctx.createLinearGradient(0, padT, 0, padT + cH);
-      grad.addColorStop(0, 'rgba(124,92,252,0.25)');
-      grad.addColorStop(1, 'rgba(124,92,252,0.01)');
+      grad.addColorStop(0, 'rgba(124,92,252,0.45)');
+      grad.addColorStop(1, 'rgba(124,92,252,0.05)');
       ctx.beginPath();
       ctx.moveTo(xPos(0), yPos(navs[0]));
       for (let i = 1; i < n; i++) ctx.lineTo(xPos(i), yPos(navs[i]));
@@ -827,7 +827,7 @@
       ctx.beginPath();
       ctx.moveTo(xPos(0), yPos(navs[0]));
       for (let i = 1; i < n; i++) ctx.lineTo(xPos(i), yPos(navs[i]));
-      ctx.strokeStyle = '#7c5cfc';
+      ctx.strokeStyle = '#a78bfa';
       ctx.lineWidth = 2.5;
       ctx.lineJoin = 'round';
       ctx.stroke();
@@ -844,12 +844,12 @@
           const color = isBuy ? '#22c55e' : '#ef4444';
           // Outer glow
           ctx.beginPath();
-          ctx.arc(x, y, 10, 0, Math.PI*2);
-          ctx.fillStyle = isBuy ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)';
+          ctx.arc(x, y, 12, 0, Math.PI*2);
+          ctx.fillStyle = isBuy ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)';
           ctx.fill();
           // Dot
           ctx.beginPath();
-          ctx.arc(x, y, 6, 0, Math.PI*2);
+          ctx.arc(x, y, 7, 0, Math.PI*2);
           ctx.fillStyle = color;
           ctx.fill();
           ctx.strokeStyle = '#0d0d1a';
@@ -920,24 +920,24 @@
 
     function redrawFull(ctx, W, H, padL, padR, padT, padB, cW, cH, minNav, maxNav, navRange, gridLines, dates, navs, n, xPos, yPos, opMap, grad) {
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#0d0d1a';
+      ctx.fillStyle = '#131525';
       ctx.fillRect(0, 0, W, H);
 
       // Grid
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4,4]);
       for (let i = 0; i <= gridLines; i++) {
         const y = padT + (cH / gridLines) * i;
         ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
         const val = maxNav - (navRange / gridLines) * i;
-        ctx.fillStyle = '#666'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
+        ctx.fillStyle = '#999'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'right';
         ctx.fillText(val.toFixed(4), padL - 8, y + 4);
       }
       ctx.setLineDash([]);
 
       // X labels
-      ctx.fillStyle = '#666'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#999'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
       const labelStep = Math.max(1, Math.floor(n / 6));
       for (let i = 0; i < n; i += labelStep) ctx.fillText(dates[i].slice(5), xPos(i), H - padB + 20);
       if (n > 1) ctx.fillText(dates[n-1].slice(5), xPos(n-1), H - padB + 20);
@@ -951,7 +951,7 @@
       // Line
       ctx.beginPath(); ctx.moveTo(xPos(0), yPos(navs[0]));
       for (let i = 1; i < n; i++) ctx.lineTo(xPos(i), yPos(navs[i]));
-      ctx.strokeStyle = '#7c5cfc'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+      ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
 
       // Dots
       for (let i = 0; i < n; i++) {
@@ -960,9 +960,9 @@
         const x = xPos(i), y = yPos(navs[i]);
         dateOps.forEach(op => {
           const isBuy = op.type === '建仓' || op.type === '加仓';
-          ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2);
-          ctx.fillStyle = isBuy ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'; ctx.fill();
-          ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2);
+          ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2);
+          ctx.fillStyle = isBuy ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)'; ctx.fill();
+          ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2);
           ctx.fillStyle = isBuy ? '#22c55e' : '#ef4444'; ctx.fill();
           ctx.strokeStyle = '#0d0d1a'; ctx.lineWidth = 2; ctx.stroke();
         });
