@@ -431,21 +431,30 @@
     function fmtPct(n) { return (n>=0?'+':'') + Number(n||0).toFixed(2) + '%'; }
     function cls(n) { return n > 0.001 ? 'positive' : n < -0.001 ? 'negative' : 'neutral'; }
 
+    async function loadFromApi() {
+      const r = await fetch('/api/summary');
+      if (!r.ok) throw new Error('API returned ' + r.status);
+      return await r.json();
+    }
+
+    async function loadFromStatic() {
+      const [p, o, r2, c] = await Promise.all([
+        fetch('data/portfolio.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch('data/operations.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch('data/daily-reports.json').then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }),
+        fetch('config.json').then(r => r.ok ? r.json() : ({})).catch(() => ({}))
+      ]);
+      return { portfolio: p, operations: o, reports: r2, config: c };
+    }
+
     async function loadAll() {
       try {
-        const r = await fetch('/api/summary');
-        D = await r.json();
+        D = await loadFromApi();
         render();
       } catch(e) {
-        console.warn('API 不可用，尝试加载静态数据...', e);
+        console.warn('API 不可用，尝试静态数据...', e.message);
         try {
-          const [p, o, r2, c] = await Promise.all([
-            fetch('data/portfolio.json').then(r=>r.json()),
-            fetch('data/operations.json').then(r=>r.json()),
-            fetch('data/daily-reports.json').then(r=>r.json()),
-            fetch('config.json').then(r=>r.json()).catch(()=>({}))
-          ]);
-          D = { portfolio: p, operations: o, reports: r2, config: c };
+          D = await loadFromStatic();
           render();
         } catch(e2) {
           console.error('静态数据也加载失败', e2);
