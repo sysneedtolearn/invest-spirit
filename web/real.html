@@ -207,16 +207,8 @@
 <body>
   <div class="page-switch"><a href="index.html">🧚 查看模拟盘 →</a></div>
 
-  <div id="loginPage" class="login-overlay">
-    <div class="login-card">
-      <div class="login-icon">🔐</div>
-      <h3>实盘持仓</h3>
-      <p class="login-desc">输入密码查看实际持仓情况</p>
-      <input type="password" id="pwdInput" class="login-input" placeholder="请输入密码" />
-      <button class="btn btn-p" style="width:100%;padding:14px;font-size:15px" onclick="doLogin()">进入</button>
-      <div id="loginErr" class="login-err"></div>
-    </div>
-  </div>
+  <!-- Login removed - direct access -->
+  <div id="mainContent" class="container">
 
   <div id="mainContent" class="container" style="display:none">
     <div class="header">
@@ -370,8 +362,36 @@
 <script>
 const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
 const DATA_URL='data/real-portfolio.json';
-const API_BASE=''; // 同源，服务器在 3927
+const API_BASE='';
 const LS_KEY='invest_spirit_real';
+
+async function init(){
+  $('mainContent').style.display='block';
+  $('o_date').value=new Date().toISOString().slice(0,10);
+  
+  // 优先从 localStorage，没有就用服务器的
+  const local=getLocal();
+  if(local && local.positions && local.positions.length>0){
+    DATA.positions=local.positions;
+    DATA.operations=local.operations||[];
+    DATA.screenshots=local.screenshots||[];
+    DATA.lastUpdated=local.lastUpdated;
+  } else {
+    try{
+      const r=await fetch(DATA_URL+'?t='+Date.now());
+      const server=await r.json();
+      if(server.positions && server.positions.length>0){
+        DATA.positions=server.positions;
+        DATA.operations=server.operations||[];
+        DATA.screenshots=server.screenshots||[];
+        DATA.lastUpdated=server.lastUpdated;
+        saveLocal();
+      }
+    }catch(e){console.log('Load failed',e)}
+  }
+  renderAll();
+}
+window.onload=init;
 
 function $(id){return document.getElementById(id)}
 function fmtCny(n){return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -405,24 +425,7 @@ $('tabBar').addEventListener('click',e=>{
   tab.classList.add('active');
 });
 
-// --- Auth ---
-async function sha256(t){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-$('pwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-
-async function doLogin(){
-  const pwd=$('pwdInput').value.trim(); if(!pwd) return;
-  $('loginErr').textContent='';
-  try{
-    const r=await fetch(DATA_URL+'?t='+Date.now());
-    if(!r.ok){$('loginErr').textContent='数据加载失败';return}
-    const server=await r.json();
-    const hash=await sha256(pwd);
-    if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
-
-    // 优先用 localStorage，如果没有就用服务器的
+// --- Init ---
     const local=getLocal();
     if(local && local.positions && local.positions.length>0){
       DATA.positions=local.positions;
@@ -443,11 +446,7 @@ async function doLogin(){
       DATA.screenshots=[];
     }
 
-    $('loginPage').style.display='none';
-    $('mainContent').style.display='block';
-    $('o_date').value=new Date().toISOString().slice(0,10);
     renderAll();
-  }catch(e){$('loginErr').textContent='网络错误'}
 }
 
 // --- Save Position ---
