@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧚 投资精灵 - 模拟盘</title>
+  <title>🧚 投资精灵</title>
   <style>
     :root {
       --bg: #0a0a12;
@@ -302,6 +302,41 @@
       .op-head { flex-direction:column; align-items:flex-start; }
     }
 
+    /* Real Portfolio Tab */
+    .real-login-box { display:flex; justify-content:center; align-items:center; min-height:400px; }
+    .real-login-card {
+      background:var(--card); border-radius:18px; border:1px solid var(--border);
+      padding:48px 40px; text-align:center; width:100%; max-width:380px;
+    }
+    .real-login-icon { font-size:48px; margin-bottom:16px; }
+    .real-login-card h3 { font-size:20px; font-weight:700; margin-bottom:8px; }
+    .real-login-desc { color:var(--text-dim); font-size:13px; margin-bottom:24px; }
+    .real-pwd-input {
+      width:100%; padding:14px; border-radius:10px; border:1px solid var(--border-light);
+      background:var(--bg); color:var(--text); font-size:16px; text-align:center;
+      margin-bottom:16px; outline:none; transition:border .2s; letter-spacing:4px;
+    }
+    .real-pwd-input:focus { border-color:var(--accent); }
+    .real-login-btn { width:100%; padding:14px; font-size:15px; }
+    .real-login-err { color:var(--red); font-size:13px; margin-top:12px; min-height:20px; }
+    .real-section-header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:14px; margin-top:24px;
+    }
+    .real-section-header h3 { font-size:16px; font-weight:700; }
+    .real-last-update { font-size:12px; color:var(--text-dim); }
+    .real-analysis-box {
+      background:var(--card); border-radius:14px; border:1px solid var(--border);
+      padding:24px; font-size:14px; line-height:1.8; white-space:pre-wrap;
+      border-left:3px solid var(--accent);
+    }
+    .real-info-banner {
+      background:rgba(124,92,252,.06); border:1px solid var(--border);
+      border-radius:12px; padding:16px 20px; margin-bottom:20px;
+      font-size:13px; color:var(--text-dim); line-height:1.7;
+    }
+    .real-info-banner strong { color:var(--accent-light); }
+
     ::-webkit-scrollbar { width:6px; }
     ::-webkit-scrollbar-track { background:var(--bg); }
     ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -339,6 +374,7 @@
       <button class="tab active" data-tab="positions">💼 持仓总览</button>
       <button class="tab" data-tab="timeline">📅 时间轨迹</button>
       <button class="tab" data-tab="operations">📋 操作记录</button>
+      <button class="tab" data-tab="real">📸 实盘持仓</button>
     </div>
 
     <div id="tab-positions" class="tab-content">
@@ -357,6 +393,49 @@
     <div id="tab-operations" class="tab-content" style="display:none">
       <div id="opsBox">
         <div class="loading"><div class="spinner"></div>加载中...</div>
+      </div>
+    </div>
+
+    <div id="tab-real" class="tab-content" style="display:none">
+      <!-- Login Gate -->
+      <div id="realLogin" class="real-login-box">
+        <div class="real-login-card">
+          <div class="real-login-icon">🔐</div>
+          <h3>实盘持仓</h3>
+          <p class="real-login-desc">输入密码查看实际持仓情况</p>
+          <input type="password" id="realPwdInput" class="real-pwd-input" placeholder="请输入密码" />
+          <button class="btn btn-p real-login-btn" onclick="realLogin()">进入</button>
+          <div id="realLoginErr" class="real-login-err"></div>
+        </div>
+      </div>
+      <!-- Authenticated Content -->
+      <div id="realContent" style="display:none">
+        <!-- Real Positions Table -->
+        <div id="realPositionsSection">
+          <div class="real-section-header">
+            <h3>📊 当前实盘持仓</h3>
+            <span class="real-last-update" id="realLastUpdate"></span>
+          </div>
+          <div id="realPositionsTable" class="tbl-wrap">
+            <div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>发送持仓截图或文字给 Mochi，自动识别并更新。</p></div>
+          </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div id="realAnalysisSection" style="display:none">
+          <div class="real-section-header">
+            <h3>🧚 Mochi 的投资建议</h3>
+          </div>
+          <div id="realAnalysisContent" class="real-analysis-box"></div>
+        </div>
+
+        <!-- Operations History -->
+        <div id="realOpsSection">
+          <div class="real-section-header">
+            <h3>📋 操作记录</h3>
+          </div>
+          <div id="realOpsList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -998,6 +1077,107 @@
 
     loadAll();
     setInterval(loadAll, 30000);
+
+    // ---- Real Portfolio (static, password via SHA256) ----
+    let realAuthed = false;
+    const REAL_DATA_URL = 'data/real-portfolio.json';
+
+    $('realPwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') realLogin(); });
+
+    async function sha256(text) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    async function realLogin() {
+      const pwd = $('realPwdInput').value.trim();
+      if (!pwd) return;
+      $('realLoginErr').textContent = '';
+      try {
+        const r = await fetch(REAL_DATA_URL);
+        if (!r.ok) { $('realLoginErr').textContent = '数据加载失败'; return; }
+        const data = await r.json();
+        const hash = await sha256(pwd);
+        if (hash === data.passwordHash) {
+          realAuthed = true;
+          $('realLogin').style.display = 'none';
+          $('realContent').style.display = 'block';
+          renderRealPortfolio(data);
+        } else {
+          $('realLoginErr').textContent = '密码错误';
+          $('realPwdInput').value = '';
+          $('realPwdInput').focus();
+        }
+      } catch (e) {
+        $('realLoginErr').textContent = '网络错误';
+      }
+    }
+
+    function renderRealPortfolio(data) {
+      if (data.lastUpdated) {
+        $('realLastUpdate').textContent = '更新于 ' + new Date(data.lastUpdated).toLocaleString('zh-CN');
+      }
+
+      const tbl = $('realPositionsTable');
+      const positions = data.positions || [];
+      if (positions.length > 0) {
+        let totalValue = 0, totalCost = 0;
+        positions.forEach(p => { totalValue += (p.currentValue||0); totalCost += (p.totalCost||0); });
+        const totalProfit = totalValue - totalCost;
+        const totalRate = totalCost > 0 ? (totalProfit/totalCost*100) : 0;
+
+        let html = `<table><thead><tr>
+          <th>基金/股票</th><th>持仓成本</th><th>当前市值</th><th>收益</th><th>收益率</th><th>仓位占比</th>
+        </tr></thead><tbody>`;
+        positions.forEach((pos, i) => {
+          const profit = (pos.currentValue||0) - (pos.totalCost||0);
+          const rate = pos.totalCost > 0 ? (profit/pos.totalCost*100) : 0;
+          const ratio = totalValue > 0 ? (pos.currentValue/totalValue*100) : 0;
+          const dot = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+COLORS[i%COLORS.length]+';margin-right:8px"></span>';
+          html += '<tr><td>'+dot+'<span class="fname">'+pos.name+'</span><br><span class="fcode">'+(pos.code||'')+'</span></td>'
+            +'<td>'+fmtCny(pos.totalCost)+'</td><td>'+fmtCny(pos.currentValue)+'</td>'
+            +'<td class="'+cls(profit)+'">'+fmtCny(profit)+'</td>'
+            +'<td class="'+cls(rate)+'">'+fmtPct(rate)+'</td>'
+            +'<td>'+ratio.toFixed(1)+'%</td></tr>';
+        });
+        html += '<tr style="background:rgba(124,92,252,.05)"><td><strong>合计</strong></td>'
+          +'<td><strong>'+fmtCny(totalCost)+'</strong></td><td><strong>'+fmtCny(totalValue)+'</strong></td>'
+          +'<td class="'+cls(totalProfit)+'"><strong>'+fmtCny(totalProfit)+'</strong></td>'
+          +'<td class="'+cls(totalRate)+'"><strong>'+fmtPct(totalRate)+'</strong></td><td>100%</td></tr>';
+        html += '</tbody></table>';
+        tbl.innerHTML = html;
+      } else {
+        tbl.innerHTML = '<div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>发送持仓截图或文字给 Mochi，自动识别并更新。</p></div>';
+      }
+
+      // Analysis
+      if (data.analysis) {
+        $('realAnalysisSection').style.display = 'block';
+        $('realAnalysisContent').textContent = data.analysis;
+      }
+
+      // Operations
+      const ops = data.operations || [];
+      const opsList = $('realOpsList');
+      if (ops.length > 0) {
+        const sorted = [...ops].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+        opsList.innerHTML = sorted.map(op => {
+          const isBuy = ['买入','建仓','加仓','申购','定投'].includes(op.type);
+          const tagCls = isBuy ? 'tag-buy' : 'tag-sell';
+          const srcLabel = op.source==='screenshot'?'📸 截图识别':op.source==='voice'?'🎙️ 语音':'✏️ 手动';
+          return '<div class="op-card"><div class="op-head"><div class="op-head-left">'
+            +'<span class="op-type '+tagCls+'">'+op.type+'</span>'
+            +'<span class="op-fund">'+op.name+'</span>'
+            +'<span class="op-code">'+(op.code||'')+'</span></div>'
+            +'<div class="op-amt '+(isBuy?'':'positive')+'">'+(isBuy?'-':'+')+fmtCny(op.amount)+'</div></div>'
+            +'<div class="op-meta">'+op.date+' '+(op.time||'')+' · '+srcLabel+'</div>'
+            +(op.reason?'<div class="op-reason">💡 '+op.reason+'</div>':'')
+            +'</div>';
+        }).join('');
+      } else {
+        opsList.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:20px">暂无操作记录。发送截图或文字描述给 Mochi 即可自动记录。</div>';
+      }
+    }
   </script>
 </body>
 </html>
