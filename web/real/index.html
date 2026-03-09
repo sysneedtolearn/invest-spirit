@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧚 投资精灵 - 实盘</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a12; --card: #13132a; --card-hover: #1a1a36;
+      --accent: #7c5cfc; --accent-light: #a78bfa; --accent-glow: rgba(124,92,252,0.2);
+      --green: #22c55e; --green-bg: rgba(34,197,94,0.1);
+      --red: #ef4444; --red-bg: rgba(239,68,68,0.1);
+      --yellow: #eab308; --yellow-bg: rgba(234,179,8,0.1);
+      --text: #e2e8f0; --text-dim: #8892a8;
+      --border: #1e1e3a; --border-light: #2a2a4a;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; }
+    .container { max-width:1280px; margin:0 auto; padding:24px; }
+
+    .header { display:flex; justify-content:space-between; align-items:flex-start; padding:32px 0 24px; border-bottom:1px solid var(--border); margin-bottom:28px; }
+    .logo-area { display:flex; align-items:center; gap:16px; }
+    .logo { width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg,#ef4444,#f97316); display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 4px 20px rgba(239,68,68,0.2); }
+    .header h1 { font-size:22px; font-weight:700; }
+    .header .subtitle { color:var(--text-dim); font-size:13px; margin-top:2px; }
+    .header-right { text-align:right; }
+    .total-label { font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+    .total-amount { font-size:32px; font-weight:800; margin-top:4px; }
+    .total-profit { font-size:14px; margin-top:2px; }
+    .last-update { font-size:11px; color:var(--text-dim); margin-top:8px; }
+
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:28px; }
+    .stat { background:var(--card); border-radius:14px; padding:18px; border:1px solid var(--border); transition:transform .15s,box-shadow .15s; }
+    .stat:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .stat .label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.8px; }
+    .stat .val { font-size:22px; font-weight:700; margin-top:6px; }
+    .stat .sub { font-size:12px; margin-top:3px; }
+
+    .tabs { display:flex; gap:2px; margin-bottom:24px; background:var(--card); border-radius:12px; padding:3px; width:fit-content; border:1px solid var(--border); flex-wrap:wrap; }
+    .tab { padding:10px 22px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:500; color:var(--text-dim); transition:all .2s; border:none; background:none; white-space:nowrap; }
+    .tab:hover { color:var(--text); background:rgba(255,255,255,.03); }
+    .tab.active { background:var(--accent); color:white; box-shadow:0 2px 12px var(--accent-glow); }
+
+    .tbl-wrap { background:var(--card); border-radius:14px; border:1px solid var(--border); overflow-x:auto; margin-bottom:24px; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; padding:14px 18px; font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-dim); border-bottom:1px solid var(--border); font-weight:600; background:rgba(0,0,0,.2); }
+    td { padding:16px 18px; font-size:14px; border-bottom:1px solid var(--border); }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:var(--card-hover); }
+    .fname { font-weight:600; } .fcode { font-size:12px; color:var(--text-dim); }
+
+    .alloc-section { margin-bottom:24px; }
+    .alloc-card { background:var(--card); border-radius:14px; border:1px solid var(--border); padding:24px; }
+    .alloc-card h3 { font-size:14px; font-weight:600; margin-bottom:16px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; }
+    .alloc-bar { display:flex; flex-direction:column; gap:10px; }
+    .alloc-item { display:flex; align-items:center; gap:10px; }
+    .alloc-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .alloc-name { font-size:13px; flex:1; } .alloc-pct { font-size:13px; font-weight:600; }
+    .bar-track { height:6px; background:var(--border); border-radius:3px; flex:2; }
+    .bar-fill { height:100%; border-radius:3px; transition:width .5s ease; }
+
+    .tag { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+    .tag-buy { background:var(--green-bg); color:var(--green); }
+    .tag-sell { background:var(--red-bg); color:var(--red); }
+
+    .op-card { background:var(--card); border-radius:14px; padding:22px; border:1px solid var(--border); margin-bottom:14px; transition:transform .15s; }
+    .op-card:hover { transform:translateY(-2px); }
+    .op-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
+    .op-head-left { display:flex; align-items:center; gap:10px; }
+    .op-type { padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; }
+    .op-fund { font-weight:600; font-size:15px; } .op-code { font-size:12px; color:var(--text-dim); }
+    .op-amt { font-size:20px; font-weight:700; }
+    .op-meta { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+    .op-reason { font-size:13px; color:var(--text); line-height:1.7; padding:14px 16px; background:rgba(124,92,252,.04); border-radius:10px; border-left:3px solid var(--accent); }
+
+    .analysis-box { background:var(--card); border-radius:14px; border:1px solid var(--border); padding:24px; font-size:14px; line-height:1.8; white-space:pre-wrap; border-left:3px solid var(--accent); margin-bottom:24px; }
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; margin-top:8px; }
+    .section-header h3 { font-size:16px; font-weight:700; }
+
+    .login-overlay { display:flex; justify-content:center; align-items:center; min-height:80vh; }
+    .login-card { background:var(--card); border-radius:18px; border:1px solid var(--border); padding:48px 40px; text-align:center; width:100%; max-width:380px; }
+    .login-icon { font-size:48px; margin-bottom:16px; }
+    .login-card h3 { font-size:20px; font-weight:700; margin-bottom:8px; }
+    .login-desc { color:var(--text-dim); font-size:13px; margin-bottom:24px; }
+    .login-input { width:100%; padding:14px; border-radius:10px; border:1px solid var(--border-light); background:var(--bg); color:var(--text); font-size:16px; text-align:center; margin-bottom:16px; outline:none; transition:border .2s; letter-spacing:4px; }
+    .login-input:focus { border-color:var(--accent); }
+    .login-err { color:var(--red); font-size:13px; margin-top:12px; min-height:20px; }
+
+    .page-switch { position:fixed; top:20px; right:24px; z-index:50; }
+    .page-switch a { display:inline-block; padding:8px 16px; border-radius:8px; background:var(--card); border:1px solid var(--border); color:var(--text-dim); text-decoration:none; font-size:13px; transition:all .2s; }
+    .page-switch a:hover { border-color:var(--accent); color:var(--accent-light); }
+
+    .btn { padding:12px 28px; border-radius:10px; border:none; cursor:pointer; font-size:14px; font-weight:600; transition:all .2s; }
+    .btn-p { background:var(--accent); color:white; }
+    .btn-p:hover { background:#6b4fe6; }
+    .btn-s { background:var(--card); color:var(--text); border:1px solid var(--border); }
+    .btn-s:hover { border-color:var(--accent); color:var(--accent-light); }
+    .btn-danger { background:var(--red-bg); color:var(--red); border:1px solid rgba(239,68,68,.2); }
+    .btn-danger:hover { background:var(--red); color:white; }
+
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--text-dim); }
+    .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
+    .empty .em { font-size:48px; margin-bottom:16px; }
+    .empty p { font-size:14px; max-width:400px; margin:0 auto; line-height:1.7; }
+
+    /* === Input Tab === */
+    .input-section { margin-bottom:32px; }
+    .input-section h3 { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+    .upload-zone {
+      border:2px dashed var(--border-light); border-radius:16px; padding:40px 20px;
+      text-align:center; cursor:pointer; transition:all .25s; background:rgba(124,92,252,.02);
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color:var(--accent); background:rgba(124,92,252,.06); }
+    .upload-zone .uz-icon { font-size:40px; margin-bottom:12px; }
+    .upload-zone .uz-main { font-size:14px; font-weight:600; margin-bottom:6px; }
+    .upload-zone .uz-sub { font-size:12px; color:var(--text-dim); }
+
+    .preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:14px; }
+    .preview-card { background:var(--card); border-radius:10px; border:1px solid var(--border); overflow:hidden; position:relative; }
+    .preview-card img { width:100%; height:100px; object-fit:cover; display:block; }
+    .preview-card .pc-name { padding:6px 8px; font-size:10px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .preview-card .pc-del { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.7); color:white; border:none; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; }
+
+    /* Form */
+    .form-card { background:var(--card); border-radius:14px; border:1px solid var(--border); padding:24px; margin-bottom:16px; }
+    .form-row { display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+    .form-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+    .form-group label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+    .form-group input, .form-group select {
+      padding:10px 12px; border-radius:8px; border:1px solid var(--border-light);
+      background:var(--bg); color:var(--text); font-size:14px; outline:none; transition:border .2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+    .form-group select { cursor:pointer; }
+    .form-group select option { background:var(--card); }
+
+    .voice-row { display:flex; gap:10px; align-items:flex-end; }
+    .voice-btn {
+      width:48px; height:48px; border-radius:50%; border:2px solid var(--border-light);
+      background:var(--card); color:var(--text-dim); font-size:20px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0;
+    }
+    .voice-btn:hover { border-color:var(--accent); color:var(--accent-light); }
+    .voice-btn.recording { border-color:var(--red); color:var(--red); background:var(--red-bg); animation:pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+    .text-input-wrap textarea {
+      width:100%; padding:14px; border-radius:12px; border:1px solid var(--border-light);
+      background:var(--card); color:var(--text); font-size:14px; resize:vertical;
+      min-height:70px; outline:none; transition:border .2s; font-family:inherit; line-height:1.6;
+    }
+    .text-input-wrap textarea:focus { border-color:var(--accent); }
+    .text-input-wrap textarea::placeholder { color:var(--text-dim); }
+
+    .toast {
+      position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+      padding:12px 28px; border-radius:10px; font-size:14px; font-weight:600;
+      z-index:100; opacity:0; transition:opacity .3s; pointer-events:none;
+    }
+    .toast.show { opacity:1; }
+    .toast-ok { background:var(--green); color:white; }
+    .toast-err { background:var(--red); color:white; }
+
+    /* Positions manage */
+    .pos-actions { display:flex; gap:8px; }
+    .pos-actions button { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--text-dim); cursor:pointer; font-size:11px; transition:all .15s; }
+    .pos-actions button:hover { border-color:var(--accent); color:var(--accent-light); }
+    .pos-actions .del-btn:hover { border-color:var(--red); color:var(--red); }
+
+    @media (max-width:900px) { .stats { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:640px) {
+      .container { padding:14px; }
+      .header { flex-direction:column; gap:20px; }
+      .header-right { text-align:left; }
+      .total-amount { font-size:26px; }
+      .form-row { flex-direction:column; }
+    }
+    /* OCR Modal */
+    .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:flex; justify-content:center; align-items:center; padding:20px; }
+    .modal { background:var(--card); border-radius:18px; border:1px solid var(--border); padding:28px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
+    .modal h3 { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .modal-close { float:right; background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
+    .modal-close:hover { color:var(--text); }
+    .ocr-progress { margin:16px 0; }
+    .ocr-progress-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .ocr-progress-fill { height:100%; background:var(--accent); border-radius:3px; transition:width .3s; width:0; }
+    .ocr-progress-text { font-size:12px; color:var(--text-dim); margin-top:6px; }
+    .ocr-result { background:var(--bg); border-radius:10px; padding:14px; font-size:12px; color:var(--text-dim); max-height:120px; overflow-y:auto; white-space:pre-wrap; margin:12px 0; font-family:monospace; border:1px solid var(--border); }
+    .ocr-parsed { margin:16px 0; }
+    .ocr-parsed-item { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+    .ocr-parsed-item .opi-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .ocr-parsed-item .opi-name { font-weight:700; font-size:15px; }
+    .ocr-parsed-item .opi-code { font-size:12px; color:var(--text-dim); }
+    .ocr-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .ocr-field { display:flex; flex-direction:column; gap:3px; flex:1; min-width:100px; }
+    .ocr-field label { font-size:10px; color:var(--text-dim); text-transform:uppercase; }
+    .ocr-field input { padding:8px; border-radius:6px; border:1px solid var(--border-light); background:var(--card); color:var(--text); font-size:13px; outline:none; }
+    .ocr-field input:focus { border-color:var(--accent); }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  </style>
+</head>
+<body>
+  <div class="page-switch"><a href="index.html">🧚 查看模拟盘 →</a></div>
+
+  <div id="loginPage" class="login-overlay">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h3>实盘持仓</h3>
+      <p class="login-desc">输入密码查看实际持仓情况</p>
+      <input type="password" id="pwdInput" class="login-input" placeholder="请输入密码" />
+      <button class="btn btn-p" style="width:100%;padding:14px;font-size:15px" onclick="doLogin()">进入</button>
+      <div id="loginErr" class="login-err"></div>
+    </div>
+  </div>
+
+  <div id="mainContent" class="container" style="display:none">
+
+  <div id="mainContent" class="container" style="display:none">
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo">📸</div>
+        <div><h1>投资精灵 · 实盘</h1><div class="subtitle">真实持仓 · 自主管理</div></div>
+      </div>
+      <div class="header-right">
+        <div class="total-label">总市值</div>
+        <div class="total-amount" id="totalAssets">--</div>
+        <div class="total-profit" id="totalProfit">--</div>
+        <div class="last-update" id="lastUpdate"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">总成本</div><div class="val" id="s_cost">--</div></div>
+      <div class="stat"><div class="label">总市值</div><div class="val" id="s_value">--</div></div>
+      <div class="stat"><div class="label">总收益</div><div class="val" id="s_profit">--</div><div class="sub" id="s_rate">--</div></div>
+      <div class="stat"><div class="label">持仓数量</div><div class="val" id="s_count">--</div></div>
+    </div>
+
+    <div class="tabs" id="tabBar">
+      <button class="tab active" data-tab="positions">💼 持仓总览</button>
+      <button class="tab" data-tab="input">✏️ 录入操作</button>
+      <button class="tab" data-tab="operations">📋 操作记录</button>
+    </div>
+
+    <!-- 持仓总览 -->
+    <div id="tab-positions" class="tab-content">
+      <div id="allocSection"></div>
+      <div id="positionsTable" class="tbl-wrap">
+        <div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」添加持仓。</p></div>
+      </div>
+    </div>
+
+    <!-- 录入操作 -->
+    <div id="tab-input" class="tab-content" style="display:none">
+
+      <!-- 新增/编辑持仓 -->
+      <div class="input-section">
+        <h3>📊 新增 / 更新持仓</h3>
+        <div class="form-card">
+          <div class="form-row">
+            <div class="form-group"><label>基金/股票名称</label><input id="f_name" placeholder="如：易方达蓝筹" /></div>
+            <div class="form-group"><label>代码</label><input id="f_code" placeholder="如：005827" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>持仓成本 (元)</label><input id="f_cost" type="number" placeholder="总投入金额" /></div>
+            <div class="form-group"><label>当前市值 (元)</label><input id="f_value" type="number" placeholder="当前价值" /></div>
+            <div class="form-group"><label>持有份额</label><input id="f_shares" type="number" placeholder="可选" /></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn btn-p" onclick="savePosition()" style="padding:10px 24px">💾 保存持仓</button>
+            <button class="btn btn-s" onclick="clearForm()" style="padding:10px 20px">清空</button>
+          </div>
+          <div id="formMsg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+        </div>
+      </div>
+
+      <!-- 记录操作 -->
+      <div class="input-section">
+        <h3>📋 记录一笔操作</h3>
+        <div class="form-card">
+          <div class="form-row">
+            <div class="form-group"><label>操作类型</label>
+              <select id="o_type"><option>买入</option><option>卖出</option><option>加仓</option><option>减仓</option><option>定投</option><option>转换</option></select>
+            </div>
+            <div class="form-group"><label>基金/股票名称</label><input id="o_name" placeholder="如：易方达蓝筹" /></div>
+            <div class="form-group"><label>代码</label><input id="o_code" placeholder="如：005827" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>金额 (元)</label><input id="o_amount" type="number" placeholder="操作金额" /></div>
+            <div class="form-group"><label>日期</label><input id="o_date" type="date" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:3"><label>备注/原因</label><input id="o_reason" placeholder="可选" /></div>
+          </div>
+          <button class="btn btn-p" onclick="saveOperation()" style="padding:10px 24px">✅ 记录操作</button>
+          <div id="opMsg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+        </div>
+      </div>
+
+      <!-- 语音/文字快捷录入 -->
+      <div class="input-section">
+        <h3>🎙️ 语音 / 文字快捷录入</h3>
+        <div class="form-card">
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">说或写一句话描述操作，如"买入1万易方达蓝筹"，自动解析填入上方表单</p>
+          <div class="voice-row">
+            <div class="text-input-wrap" style="flex:1">
+              <textarea id="quickInput" rows="2" placeholder="输入描述或用语音..."></textarea>
+            </div>
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎙️</button>
+            <button class="btn btn-p" onclick="parseQuickInput()" style="padding:10px 20px;align-self:flex-end">解析</button>
+          </div>
+          <div id="voiceStatus" style="font-size:12px;color:var(--text-dim);margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- 截图凭证 -->
+      <div class="input-section">
+        <h3>📸 上传截图（自动识别持仓）</h3>
+        <div class="upload-zone" id="uploadZone">
+          <div class="uz-icon">📂</div>
+          <div class="uz-main">点击选择图片 / 文件夹，或拖拽到此处</div>
+          <div class="uz-sub">上传持仓截图，自动 OCR 识别 → 确认 → 更新持仓</div>
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
+          <input type="file" id="folderInput" webkitdirectory multiple style="display:none" />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-s" onclick="document.getElementById('fileInput').click()" style="font-size:13px;padding:8px 16px">📄 选择图片</button>
+          <button class="btn btn-s" onclick="document.getElementById('folderInput').click()" style="font-size:13px;padding:8px 16px">📂 选择文件夹</button>
+          <button class="btn btn-p" onclick="requestAiOcr()" style="font-size:13px;padding:8px 16px">🧚 AI识别</button>
+        </div>
+        <div id="aiOcrTip" style="font-size:11px;color:var(--text-dim);margin-top:8px">上传截图后点击「🧚 AI识别」，我会用多模态模型自动识别并更新持仓</div>
+        <div id="previewGrid" class="preview-grid"></div>
+      </div>
+    </div>
+
+    <!-- 操作记录 -->
+    <div id="tab-operations" class="tab-content" style="display:none">
+      <div id="opsBox">
+        <div class="empty"><div class="em">📋</div><p>暂无操作记录。<br>去「✏️ 录入操作」记录你的操作。</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- OCR Modal -->
+  <div id="ocrModal" class="modal-bg" style="display:none">
+    <div class="modal">
+      <button class="modal-close" onclick="closeOcrModal()">✕</button>
+      <h3>📸 OCR 识别结果</h3>
+      <div class="ocr-progress" id="ocrProgress">
+        <div class="ocr-progress-bar"><div class="ocr-progress-fill" id="ocrProgressFill"></div></div>
+        <div class="ocr-progress-text" id="ocrProgressText">正在初始化识别引擎...</div>
+      </div>
+      <div id="ocrResultWrap" style="display:none">
+        <div class="ocr-result" id="ocrRawText"></div>
+        <h4 style="font-size:13px;margin:16px 0 10px">📋 识别到的持仓（请确认）</h4>
+        <div class="ocr-parsed" id="ocrParsed"></div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-p" onclick="confirmOcr()">✅ 确认添加</button>
+          <button class="btn btn-s" onclick="closeOcrModal()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
+const DATA_URL='data/real-portfolio.json';
+const API_BASE='';
+const LS_KEY='invest_spirit_real';
+
+// --- Init ---
+// 检查是否已登录
+function checkLogin(){
+  console.log('=== checkLogin running ===');
+  var isLoggedIn = localStorage.getItem('real_portfolio_logged_in');
+  console.log('isLoggedIn =', isLoggedIn, typeof isLoggedIn);
+  console.log('loginPage element:', $('loginPage'));
+  console.log('sessionStorage:', sessionStorage);
+  if(isLoggedIn){
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    loadData();
+  }
+}
+
+async function loadData(){
+  $('o_date').value=new Date().toISOString().slice(0,10);
+  // 优先从 localStorage，没有就用服务器的
+  const local=getLocal();
+  if(local && local.positions && local.positions.length>0){
+    DATA.positions=local.positions;
+    DATA.operations=local.operations||[];
+    DATA.screenshots=local.screenshots||[];
+    DATA.lastUpdated=local.lastUpdated;
+  } else {
+    try{
+      const r=await fetch(DATA_URL+'?t='+Date.now());
+      const server=await r.json();
+      if(server.positions && server.positions.length>0){
+        DATA.positions=server.positions;
+        DATA.operations=server.operations||[];
+        DATA.screenshots=server.screenshots||[];
+        DATA.lastUpdated=server.lastUpdated;
+        saveLocal();
+      }
+    }catch(e){console.log('Load failed',e)}
+  }
+  renderAll();
+}
+window.onload=checkLogin;
+
+// --- Auth ---
+async function sha256(t){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+$('pwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+async function doLogin(){
+  const pwd=$('pwdInput').value.trim(); if(!pwd) return;
+  $('loginErr').textContent='';
+  try{
+    const r=await fetch(DATA_URL+'?t='+Date.now());
+    if(!r.ok){$('loginErr').textContent='数据加载失败';return}
+    const server=await r.json();
+    const hash=await sha256(pwd);
+    if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
+
+    // 登录成功，存状态（用 localStorage，持久化）
+    localStorage.setItem('real_portfolio_logged_in','true');
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    loadData();
+  }catch(e){$('loginErr').textContent='网络错误'}
+}
+
+function $(id){return document.getElementById(id)}
+function fmtCny(n){return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtPct(n){return (n>=0?'+':'')+Number(n||0).toFixed(2)+'%'}
+function cls(n){return n>0.001?'positive':n<-0.001?'negative':'neutral'}
+
+function toast(msg,ok){
+  const t=$('toast');
+  t.textContent=msg; t.className='toast show '+(ok?'toast-ok':'toast-err');
+  setTimeout(()=>t.className='toast',2500);
+}
+
+// --- Local Data ---
+// Merge: server JSON is base, localStorage overrides
+let DATA={positions:[],operations:[],screenshots:[],lastUpdated:null};
+
+function getLocal(){
+  try{return JSON.parse(localStorage.getItem(LS_KEY))||null}catch(e){return null}
+}
+function saveLocal(){
+  const save={positions:DATA.positions,operations:DATA.operations,screenshots:DATA.screenshots,lastUpdated:DATA.lastUpdated};
+  localStorage.setItem(LS_KEY,JSON.stringify(save));
+}
+
+// --- Tab ---
+$('tabBar').addEventListener('click',e=>{
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab.dataset.tab).style.display='block';
+  tab.classList.add('active');
+});
+
+// --- Save Position ---
+function savePosition(){
+  const name=$('f_name').value.trim();
+  const code=$('f_code').value.trim();
+  const cost=parseFloat($('f_cost').value)||0;
+  const value=parseFloat($('f_value').value)||0;
+  const shares=parseFloat($('f_shares').value)||0;
+  if(!name){$('formMsg').innerHTML='<span style="color:var(--red)">请填写名称</span>';return}
+  if(!cost&&!value){$('formMsg').innerHTML='<span style="color:var(--red)">请填写成本或市值</span>';return}
+
+  // Update existing or add new
+  const idx=DATA.positions.findIndex(p=>p.name===name||(code&&p.code===code));
+  const pos={name,code,totalCost:cost,currentValue:value||cost,totalShares:shares};
+  if(idx>=0) DATA.positions[idx]=pos;
+  else DATA.positions.push(pos);
+
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal();
+  clearForm();
+  $('formMsg').innerHTML='<span style="color:var(--green)">✅ 已保存</span>';
+  renderAll();
+}
+
+function clearForm(){
+  ['f_name','f_code','f_cost','f_value','f_shares'].forEach(id=>$(id).value='');
+}
+
+function editPosition(i){
+  const p=DATA.positions[i]; if(!p) return;
+  $('f_name').value=p.name||'';
+  $('f_code').value=p.code||'';
+  $('f_cost').value=p.totalCost||'';
+  $('f_value').value=p.currentValue||'';
+  $('f_shares').value=p.totalShares||'';
+  // Switch to input tab
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  $('tab-input').style.display='block';
+  document.querySelector('[data-tab="input"]').classList.add('active');
+  $('f_name').focus();
+}
+
+function deletePosition(i){
+  if(!confirm('确定删除 '+DATA.positions[i].name+' ？')) return;
+  DATA.positions.splice(i,1);
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal(); renderAll();
+  toast('已删除',true);
+}
+
+// --- Save Operation ---
+function saveOperation(){
+  const type=$('o_type').value;
+  const name=$('o_name').value.trim();
+  const code=$('o_code').value.trim();
+  const amount=parseFloat($('o_amount').value)||0;
+  const date=$('o_date').value;
+  const reason=$('o_reason').value.trim();
+  if(!name){$('opMsg').innerHTML='<span style="color:var(--red)">请填写名称</span>';return}
+  if(!amount){$('opMsg').innerHTML='<span style="color:var(--red)">请填写金额</span>';return}
+
+  DATA.operations.push({
+    id:Date.now().toString(), type, name, code, amount, date,
+    time:new Date().toTimeString().slice(0,5), reason, source:'manual',
+    createdAt:new Date().toISOString()
+  });
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal();
+  ['o_name','o_code','o_amount','o_reason'].forEach(id=>$(id).value='');
+  $('opMsg').innerHTML='<span style="color:var(--green)">✅ 已记录</span>';
+  renderAll();
+  toast('操作已记录',true);
+}
+
+function deleteOperation(id){
+  DATA.operations=DATA.operations.filter(o=>o.id!==id);
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal(); renderAll();
+}
+
+// --- Quick Input Parse ---
+function parseQuickInput(){
+  const txt=$('quickInput').value.trim();
+  if(!txt){return}
+
+  // Simple NLP: detect type, amount, fund name
+  let type='买入';
+  if(/卖出|卖了|减仓|赎回/.test(txt)) type='卖出';
+  else if(/加仓/.test(txt)) type='加仓';
+  else if(/定投/.test(txt)) type='定投';
+
+  // Extract amount
+  const amtMatch=txt.match(/(\d+(?:\.\d+)?)\s*[万wW]/);
+  const amtMatch2=txt.match(/(\d+(?:\.\d+)?)\s*[元块]/);
+  const amtMatch3=txt.match(/(\d{4,}(?:\.\d+)?)/);
+  let amount=0;
+  if(amtMatch) amount=parseFloat(amtMatch[1])*10000;
+  else if(amtMatch2) amount=parseFloat(amtMatch2[1]);
+  else if(amtMatch3) amount=parseFloat(amtMatch3[1]);
+
+  // Extract fund name (after removing amount/type keywords)
+  let nameStr=txt.replace(/今天|昨天|买入|买了|卖出|卖了|加仓|减仓|定投|赎回|了|的/g,'')
+    .replace(/\d+(?:\.\d+)?\s*[万wW元块]/g,'').replace(/\d{4,}/g,'').trim();
+
+  $('o_type').value=type;
+  if(nameStr) $('o_name').value=nameStr;
+  if(amount) $('o_amount').value=amount;
+  $('o_date').value=new Date().toISOString().slice(0,10);
+
+  $('quickInput').value='';
+  toast('已解析到表单，请确认后提交',true);
+
+  // Switch focus to operation form
+  $('o_name').focus();
+}
+
+// --- Voice ---
+let recognition=null, isRecording=false;
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    $('voiceStatus').textContent='❌ 浏览器不支持语音，请用 Chrome';return;
+  }
+  if(isRecording){recognition.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR(); recognition.lang='zh-CN'; recognition.continuous=false; recognition.interimResults=true;
+  recognition.onstart=()=>{isRecording=true;$('voiceBtn').classList.add('recording');$('voiceStatus').textContent='🎙️ 正在录音...'};
+  recognition.onresult=e=>{
+    let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    $('quickInput').value=t;
+    if(e.results[0].isFinal)$('voiceStatus').textContent='✅ 识别完成，点击解析';
+  };
+  recognition.onerror=e=>{$('voiceStatus').textContent='❌ '+e.error;isRecording=false;$('voiceBtn').classList.remove('recording')};
+  recognition.onend=()=>{isRecording=false;$('voiceBtn').classList.remove('recording')};
+  recognition.start();
+}
+
+// --- Screenshots ---
+const uploadZone=$('uploadZone');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('dragover')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('dragover');handleFiles(e.dataTransfer.files)});
+uploadZone.addEventListener('click',e=>{
+  if(['uz-icon','uz-main','uz-sub'].some(c=>e.target.classList.contains(c))||e.target===uploadZone)
+    $('fileInput').click();
+});
+$('fileInput').addEventListener('change',function(){handleFiles(this.files)});
+$('folderInput').addEventListener('change',function(){handleFiles(this.files)});
+
+let ocrParsedItems=[];
+
+function handleFiles(fileList){
+  const imgs=Array.from(fileList).filter(f=>f.type.startsWith('image/')&&f.size<15*1024*1024);
+  if(!imgs.length) return;
+
+  let loaded=0;
+  const dataUrls=[];
+  
+  // Show loading
+  toast('正在上传截图...', true);
+
+  imgs.forEach((file,i)=>{
+    const reader=new FileReader();
+    reader.onload=async e=>{
+      const du=e.target.result;
+      dataUrls[i]=du;
+      
+      // Upload to server first
+      try {
+        const resp=await fetch('/api/upload',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({image:du})
+        });
+        const result=await resp.json();
+        if(result.success){
+          // Store server URL too
+          DATA.screenshots.push({
+            fileName:file.name,
+            dataUrl:du,
+            serverUrl:result.url,
+            serverId:result.id,
+            addedAt:new Date().toISOString()
+          });
+        } else {
+          DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+        }
+      }catch(err){
+        DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+      }
+      
+      loaded++;
+      if(loaded===imgs.length){
+        DATA.lastUpdated=new Date().toISOString();
+        saveLocal();
+        renderScreenshots();
+        toast(loaded+'张截图已保存，点击「🧚 AI识别」让我识别', true);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  $('fileInput').value='';$('folderInput').value='';
+}
+
+async function runOcr(dataUrls){
+  $('ocrModal').style.display='flex';
+  $('ocrResultWrap').style.display='none';
+  $('ocrProgress').style.display='block';
+  $('ocrProgressFill').style.width='5%';
+  $('ocrProgressText').textContent='正在初始化 OCR 引擎...';
+  ocrParsedItems=[];
+
+  let allText='';
+  try{
+    for(let i=0;i<dataUrls.length;i++){
+      $('ocrProgressText').textContent='识别第 '+(i+1)+'/'+dataUrls.length+' 张截图...';
+      $('ocrProgressFill').style.width=((i/dataUrls.length)*80+10)+'%';
+      const result=await Tesseract.recognize(dataUrls[i],'chi_sim+eng',{
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            const pct=Math.round((i/dataUrls.length+m.progress/dataUrls.length)*80+10);
+            $('ocrProgressFill').style.width=pct+'%';
+          }
+        }
+      });
+      allText+=result.data.text+'\n---\n';
+    }
+  }catch(e){
+    $('ocrProgressText').textContent='❌ OCR 识别失败: '+e.message;
+    return;
+  }
+
+  $('ocrProgressFill').style.width='95%';
+  $('ocrProgressText').textContent='正在解析持仓数据...';
+
+  // Parse
+  ocrParsedItems=parseOcrText(allText);
+
+  $('ocrProgressFill').style.width='100%';
+  $('ocrProgress').style.display='none';
+  $('ocrResultWrap').style.display='block';
+  $('ocrRawText').textContent=allText;
+
+  renderOcrParsed();
+}
+
+function parseOcrText(text){
+  const items=[];
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    // Try to find fund/stock names with codes
+    // Common patterns: "基金名称 代码 净值 持有份额 持有金额 收益"
+    const codeMatch=line.match(/(\d{6})/);
+    const moneyMatches=line.match(/[\d,]+\.\d{2}/g);
+
+    // Heuristic: line has a 6-digit code and at least one money amount
+    if(codeMatch && moneyMatches && moneyMatches.length>=1){
+      // Try to extract name (text before the code)
+      let name=line.substring(0,line.indexOf(codeMatch[1])).replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g,'').trim();
+      if(!name && i>0) name=lines[i-1].replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g,'').trim();
+
+      const nums=moneyMatches.map(m=>parseFloat(m.replace(/,/g,'')));
+      // Guess: largest number is likely market value, second largest cost
+      const sorted=[...nums].sort((a,b)=>b-a);
+
+      items.push({
+        name:name||'未识别',
+        code:codeMatch[1],
+        totalCost:sorted[1]||sorted[0]||0,
+        currentValue:sorted[0]||0,
+        totalShares:0
+      });
+    }
+    // Also try: line has Chinese fund name + money amounts but no code
+    else if(/[\u4e00-\u9fa5]{2,}/.test(line) && moneyMatches && moneyMatches.length>=2 && !codeMatch){
+      const name=line.match(/([\u4e00-\u9fa5a-zA-Z]+)/)?.[1]||'';
+      if(name.length>=2 && !/合计|总计|收益|日期|时间/.test(name)){
+        const nums=moneyMatches.map(m=>parseFloat(m.replace(/,/g,'')));
+        const sorted=[...nums].sort((a,b)=>b-a);
+        items.push({
+          name,code:'',
+          totalCost:sorted[1]||sorted[0]||0,
+          currentValue:sorted[0]||0,
+          totalShares:0
+        });
+      }
+    }
+  }
+  return items;
+}
+
+function renderOcrParsed(){
+  const el=$('ocrParsed');
+  if(!ocrParsedItems.length){
+    el.innerHTML='<div style="color:var(--text-dim);font-size:13px;padding:16px">未能自动识别出持仓。你可以手动添加，或上传更清晰的截图。</div>';
+    return;
+  }
+  el.innerHTML=ocrParsedItems.map((p,i)=>
+    '<div class="ocr-parsed-item">'
+    +'<div class="opi-head"><span class="opi-name">'+p.name+'</span><span class="opi-code">'+p.code+'</span></div>'
+    +'<div class="ocr-row">'
+    +'<div class="ocr-field"><label>名称</label><input id="ocr_name_'+i+'" value="'+p.name+'" /></div>'
+    +'<div class="ocr-field"><label>代码</label><input id="ocr_code_'+i+'" value="'+p.code+'" /></div>'
+    +'<div class="ocr-field"><label>持仓成本</label><input id="ocr_cost_'+i+'" type="number" value="'+p.totalCost+'" /></div>'
+    +'<div class="ocr-field"><label>当前市值</label><input id="ocr_value_'+i+'" type="number" value="'+p.currentValue+'" /></div>'
+    +'</div></div>'
+  ).join('');
+}
+
+function confirmOcr(){
+  let added=0;
+  ocrParsedItems.forEach((p,i)=>{
+    const name=$('ocr_name_'+i).value.trim();
+    const code=$('ocr_code_'+i).value.trim();
+    const cost=parseFloat($('ocr_cost_'+i).value)||0;
+    const value=parseFloat($('ocr_value_'+i).value)||0;
+    if(!name||(!cost&&!value)) return;
+
+    const idx=DATA.positions.findIndex(x=>x.name===name||(code&&x.code===code));
+    const pos={name,code,totalCost:cost,currentValue:value,totalShares:0};
+    if(idx>=0) DATA.positions[idx]=pos; else DATA.positions.push(pos);
+    added++;
+  });
+  if(added){
+    DATA.lastUpdated=new Date().toISOString();
+    saveLocal(); renderAll();
+    toast(added+'条持仓已更新',true);
+  }
+  closeOcrModal();
+}
+
+function closeOcrModal(){
+  $('ocrModal').style.display='none';
+  ocrParsedItems=[];
+}
+
+function requestAiOcr(){
+  const screenshots = DATA.screenshots || [];
+  if(!screenshots.length){
+    toast('请先上传截图', false);
+    return;
+  }
+  // Show instruction
+  const last = screenshots[screenshots.length-1];
+  toast('截图已保存，请把最新截图发给我（上传到这里对话框），我会用多模态模型识别后更新持仓', true);
+  
+  // Could also open a modal showing the latest screenshot for user to copy/send
+  $('ocrModal').style.display='flex';
+  $('ocrProgress').style.display='none';
+  $('ocrResultWrap').style.display='block';
+  $('ocrRawText').innerHTML='<div style="text-align:center;padding:20px"><p style="margin-bottom:16px">请把下方截图保存后发送给我</p><img src="'+last.dataUrl+'" style="max-width:100%;border-radius:8px"><br><br><button class="btn btn-s" onclick="closeOcrModal()">关闭</button></div>';
+}
+
+function renderScreenshots(){
+  const grid=$('previewGrid');
+  grid.innerHTML=(DATA.screenshots||[]).map((s,i)=>
+    '<div class="preview-card"><img src="'+s.dataUrl+'" alt="'+s.fileName+'">'
+    +'<div class="pc-name">'+s.fileName+'</div>'
+    +'<button class="pc-del" onclick="delScreenshot('+i+')">✕</button></div>'
+  ).join('');
+}
+function delScreenshot(i){
+  DATA.screenshots.splice(i,1);saveLocal();renderScreenshots();
+}
+
+// --- Render All ---
+function renderAll(){
+  renderHeader();
+  renderPositions();
+  renderOps();
+  renderScreenshots();
+}
+
+function renderHeader(){
+  const positions=DATA.positions;
+  let totalCost=0,totalValue=0;
+  positions.forEach(p=>{totalCost+=(p.totalCost||0);totalValue+=(p.currentValue||0)});
+  const profit=totalValue-totalCost, rate=totalCost>0?(profit/totalCost*100):0;
+
+  $('totalAssets').textContent=positions.length?fmtCny(totalValue):'--';
+  const tp=$('totalProfit');
+  if(positions.length){tp.textContent='收益 '+fmtCny(profit)+' ('+fmtPct(rate)+')';tp.className='total-profit '+cls(profit)}
+  if(DATA.lastUpdated) $('lastUpdate').textContent='更新于 '+new Date(DATA.lastUpdated).toLocaleString('zh-CN');
+  $('s_cost').textContent=positions.length?fmtCny(totalCost):'--';
+  $('s_value').textContent=positions.length?fmtCny(totalValue):'--';
+  const sp=$('s_profit');sp.textContent=positions.length?fmtCny(profit):'--';sp.className='val '+cls(profit);
+  const sr=$('s_rate');sr.textContent=positions.length?fmtPct(rate):'--';sr.className='sub '+cls(rate);
+  $('s_count').textContent=positions.length||'--';
+}
+
+function renderPositions(){
+  const positions=DATA.positions;
+  let totalValue=0;positions.forEach(p=>totalValue+=(p.currentValue||0));
+
+  const allocEl=$('allocSection');
+  if(positions.length){
+    allocEl.innerHTML='<div class="alloc-section"><div class="alloc-card"><h3>📊 仓位分布</h3><div class="alloc-bar">'+
+      positions.map((pos,i)=>{
+        const pct=totalValue>0?(pos.currentValue/totalValue*100):0;
+        const c=COLORS[i%COLORS.length];
+        return '<div class="alloc-item"><div class="alloc-dot" style="background:'+c+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+c+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>';
+      }).join('')+'</div></div></div>';
+  } else allocEl.innerHTML='';
+
+  const tbl=$('positionsTable');
+  if(!positions.length){tbl.innerHTML='<div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」添加。</p></div>';return}
+
+  let tCost=0,tVal=0;
+  positions.forEach(p=>{tCost+=(p.totalCost||0);tVal+=(p.currentValue||0)});
+  const tProfit=tVal-tCost,tRate=tCost>0?(tProfit/tCost*100):0;
+
+  let html='<table><thead><tr><th>基金/股票</th><th>持仓成本</th><th>当前市值</th><th>收益</th><th>收益率</th><th>占比</th><th>操作</th></tr></thead><tbody>';
+  positions.forEach((pos,i)=>{
+    const profit=(pos.currentValue||0)-(pos.totalCost||0);
+    const pRate=pos.totalCost>0?(profit/pos.totalCost*100):0;
+    const ratio=tVal>0?(pos.currentValue/tVal*100):0;
+    const dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+COLORS[i%COLORS.length]+';margin-right:8px"></span>';
+    html+='<tr><td>'+dot+'<span class="fname">'+pos.name+'</span><br><span class="fcode">'+(pos.code||'')+'</span></td>'
+      +'<td>'+fmtCny(pos.totalCost)+'</td><td>'+fmtCny(pos.currentValue)+'</td>'
+      +'<td class="'+cls(profit)+'">'+fmtCny(profit)+'</td>'
+      +'<td class="'+cls(pRate)+'">'+fmtPct(pRate)+'</td>'
+      +'<td>'+ratio.toFixed(1)+'%</td>'
+      +'<td><div class="pos-actions"><button onclick="editPosition('+i+')">✏️</button><button class="del-btn" onclick="deletePosition('+i+')">🗑️</button></div></td></tr>';
+  });
+  html+='<tr style="background:rgba(124,92,252,.05)"><td><strong>合计</strong></td><td><strong>'+fmtCny(tCost)+'</strong></td><td><strong>'+fmtCny(tVal)+'</strong></td>'
+    +'<td class="'+cls(tProfit)+'"><strong>'+fmtCny(tProfit)+'</strong></td><td class="'+cls(tRate)+'"><strong>'+fmtPct(tRate)+'</strong></td><td>100%</td><td></td></tr>';
+  html+='</tbody></table>';
+  tbl.innerHTML=html;
+}
+
+function renderOps(){
+  const ops=DATA.operations;
+  const box=$('opsBox');
+  if(!ops.length){box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。</p></div>';return}
+  const sorted=[...ops].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  box.innerHTML=sorted.map(op=>{
+    const isBuy=['买入','建仓','加仓','申购','定投'].includes(op.type);
+    const tagCls=isBuy?'tag-buy':'tag-sell';
+    const src=op.source==='screenshot'?'📸':op.source==='voice'?'🎙️':'✏️';
+    return '<div class="op-card"><div class="op-head"><div class="op-head-left">'
+      +'<span class="op-type '+tagCls+'">'+op.type+'</span>'
+      +'<span class="op-fund">'+op.name+'</span>'
+      +'<span class="op-code">'+(op.code||'')+'</span></div>'
+      +'<div class="op-amt '+(isBuy?'':'positive')+'">'+(isBuy?'-':'+')+fmtCny(op.amount)+'</div></div>'
+      +'<div class="op-meta">'+op.date+' '+(op.time||'')+' · '+src
+      +' <button class="qc-del" onclick="deleteOperation(\''+op.id+'\')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px" title="删除">✕</button></div>'
+      +(op.reason?'<div class="op-reason">💡 '+op.reason+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+</script>
+</body>
+</html>
+<!-- force deploy Mon Mar  9 05:38:50 PM CST 2026 -->
