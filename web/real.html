@@ -207,8 +207,18 @@
 <body>
   <div class="page-switch"><a href="index.html">🧚 查看模拟盘 →</a></div>
 
-  <!-- Login removed - direct access -->
-  <div id="mainContent" class="container">
+  <div id="loginPage" class="login-overlay">
+    <div class="login-card">
+      <div class="login-icon">🔐</div>
+      <h3>实盘持仓</h3>
+      <p class="login-desc">输入密码查看实际持仓情况</p>
+      <input type="password" id="pwdInput" class="login-input" placeholder="请输入密码" />
+      <button class="btn btn-p" style="width:100%;padding:14px;font-size:15px" onclick="doLogin()">进入</button>
+      <div id="loginErr" class="login-err"></div>
+    </div>
+  </div>
+
+  <div id="mainContent" class="container" style="display:none">
 
   <div id="mainContent" class="container" style="display:none">
     <div class="header">
@@ -365,10 +375,19 @@ const DATA_URL='data/real-portfolio.json';
 const API_BASE='';
 const LS_KEY='invest_spirit_real';
 
-async function init(){
-  $('mainContent').style.display='block';
+// --- Init ---
+// 检查是否已登录
+function checkLogin(){
+  const isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
+  if(isLoggedIn === 'true'){
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    loadData();
+  }
+}
+
+async function loadData(){
   $('o_date').value=new Date().toISOString().slice(0,10);
-  
   // 优先从 localStorage，没有就用服务器的
   const local=getLocal();
   if(local && local.positions && local.positions.length>0){
@@ -391,7 +410,32 @@ async function init(){
   }
   renderAll();
 }
-window.onload=init;
+window.onload=checkLogin;
+
+// --- Auth ---
+async function sha256(t){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+$('pwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+async function doLogin(){
+  const pwd=$('pwdInput').value.trim(); if(!pwd) return;
+  $('loginErr').textContent='';
+  try{
+    const r=await fetch(DATA_URL+'?t='+Date.now());
+    if(!r.ok){$('loginErr').textContent='数据加载失败';return}
+    const server=await r.json();
+    const hash=await sha256(pwd);
+    if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
+
+    // 登录成功，存状态
+    sessionStorage.setItem('real_portfolio_logged_in','true');
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    loadData();
+  }catch(e){$('loginErr').textContent='网络错误'}
+}
 
 function $(id){return document.getElementById(id)}
 function fmtCny(n){return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -426,28 +470,40 @@ $('tabBar').addEventListener('click',e=>{
 });
 
 // --- Init ---
-    const local=getLocal();
-    if(local && local.positions && local.positions.length>0){
-      DATA.positions=local.positions;
-      DATA.operations=local.operations||[];
-      DATA.screenshots=local.screenshots||[];
-      DATA.lastUpdated=local.lastUpdated;
-      console.log('Loaded from localStorage');
-    } else if(server.positions && server.positions.length>0){
-      DATA.positions=server.positions;
-      DATA.operations=server.operations||[];
-      DATA.screenshots=server.screenshots||[];
-      DATA.lastUpdated=server.lastUpdated;
-      saveLocal(); // 同步到 localStorage
-      console.log('Loaded from server, saved to localStorage');
-    } else {
-      DATA.positions=[];
-      DATA.operations=[];
-      DATA.screenshots=[];
-    }
-
-    renderAll();
+// 检查是否已登录（localStorage 存登录状态）
+function checkLogin(){
+  const isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
+  if(isLoggedIn === 'true'){
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    loadData(); // 加载数据
+  }
 }
+
+async function loadData(){
+  // 优先从 localStorage，没有就用服务器的
+  const local=getLocal();
+  if(local && local.positions && local.positions.length>0){
+    DATA.positions=local.positions;
+    DATA.operations=local.operations||[];
+    DATA.screenshots=local.screenshots||[];
+    DATA.lastUpdated=local.lastUpdated;
+  } else {
+    try{
+      const r=await fetch(DATA_URL+'?t='+Date.now());
+      const server=await r.json();
+      if(server.positions && server.positions.length>0){
+        DATA.positions=server.positions;
+        DATA.operations=server.operations||[];
+        DATA.screenshots=server.screenshots||[];
+        DATA.lastUpdated=server.lastUpdated;
+        saveLocal();
+      }
+    }catch(e){console.log('Load failed',e)}
+  }
+  renderAll();
+}
+window.onload=checkLogin;
 
 // --- Save Position ---
 function savePosition(){
