@@ -1,7 +1,7 @@
 {
   "totalCapital": 200000,
   "availableCash": 100000,
-  "totalInvested": 101132.95,
+  "totalInvested": 100000,
   "positions": [
     {
       "code": "001475",
@@ -9,8 +9,8 @@
       "totalCost": 25000,
       "totalShares": 12692.93257514216,
       "avgCostNav": 1.9696,
-      "currentNav": 2.0054,
-      "currentValue": 25446.82,
+      "currentNav": 1.9939,
+      "currentValue": 25308.44,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -20,8 +20,8 @@
       "totalCost": 20000,
       "totalShares": 12803.277639075603,
       "avgCostNav": 1.5621,
-      "currentNav": 1.5897,
-      "currentValue": 20353.37,
+      "currentNav": 1.5565,
+      "currentValue": 19928.3,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -31,8 +31,8 @@
       "totalCost": 20000,
       "totalShares": 5863.383172090296,
       "avgCostNav": 3.411,
-      "currentNav": 3.4556,
-      "currentValue": 20261.47,
+      "currentNav": 3.4249,
+      "currentValue": 20081.5,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -42,8 +42,8 @@
       "totalCost": 20000,
       "totalShares": 2225.114871555244,
       "avgCostNav": 8.9883,
-      "currentNav": 9.1501,
-      "currentValue": 20359.73,
+      "currentNav": 8.9587,
+      "currentValue": 19934.14,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -53,13 +53,13 @@
       "totalCost": 15000,
       "totalShares": 22338.04914370812,
       "avgCostNav": 0.6715,
-      "currentNav": 0.6874,
-      "currentValue": 15355.28,
+      "currentNav": 0.6844,
+      "currentValue": 15288.16,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     }
   ],
-  "totalProfit": 1776.67,
-  "totalProfitRate": 0.8883,
-  "lastUpdated": "2026-03-06 14:30:00"
+  "totalProfit": 540.54,
+  "totalProfitRate": 0.5405,
+  "lastUpdated": "2026-03-09 14:30:00"
 }
