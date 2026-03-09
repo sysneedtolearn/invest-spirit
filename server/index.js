@@ -7,8 +7,62 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const { execSync } = require('child_process');
 
 const PORT = process.env.PORT || 3927;
+
+// 调用多模态模型识别图片
+async function callMultimodalModel(imageDataUrl) {
+  const base64 = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+  const prompt = `请识别这张基金/股票持仓截图，提取所有持仓信息。
+
+请按以下JSON格式返回（只返回JSON，不要其他内容）：
+{
+  "positions": [
+    {"name": "基金/股票名称", "code": "代码", "totalCost": 持仓成本(数字), "currentValue": 当前市值(数字), "totalShares": 持有份额(数字，可选)}
+  ]
+}
+
+如果无法识别或图片不清晰，返回：
+{"positions": [], "error": "错误原因"}`;
+
+  const payload = JSON.stringify({
+    model: "gemini-2.0-flash",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: imageDataUrl } }
+        ]
+      }
+    ],
+    max_tokens: 2000,
+    temperature: 0.1
+  });
+
+  // 通过 OpenClaw MCP 调用模型 (绕过代理)
+  const curlCmd = `curl -s --noproxy '*' -X POST 'http://127.0.0.1:18999/v1/chat/completions' \
+    -H 'Content-Type: application/json' \
+    -H 'Authorization: Bearer dummy' \
+    --max-time 120 \
+    -d '${payload.replace(/'/g, "\\'")}'`;
+
+  try {
+    const response = execSync(curlCmd, { timeout: 130000, env: { ...process.env, http_proxy: '', https_proxy: '', HTTP_PROXY: '', HTTPS_PROXY: '' } });
+    const result = JSON.parse(response.toString());
+    const content = result.choices?.[0]?.message?.content || '';
+    
+    // 解析 JSON
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return { positions: [], error: '无法解析模型返回' };
+  } catch (e) {
+    return { positions: [], error: e.message };
+  }
+}
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const WEB_DIR = path.join(__dirname, '..', 'web');
 const CONFIG_FILE = path.join(__dirname, '..', 'config.json');
@@ -20,6 +74,9 @@ const MIME = {
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
 };
@@ -112,6 +169,59 @@ const server = http.createServer(async (req, res) => {
     writeJSON(CONFIG_FILE, config);
     writeJSON(path.join(DATA_DIR, 'portfolio.json'), portfolio);
     return json(res, { success: true, totalCapital: body.totalCapital, availableCash: portfolio.availableCash });
+  }
+
+  // POST /api/upload — 上传截图存到服务器，返回 ID
+  if (pathname === '/api/upload' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const imageData = body.image || body.dataUrl || '';
+    if (!imageData) {
+      return json(res, { error: '请提供图片数据' }, 400);
+    }
+    
+    const UPLOAD_DIR = path.join(__dirname, '..', 'data', 'uploads');
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+    
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const ext = imageData.match(/^data:image\/(\w+);base64,/)?.[1] || 'png';
+    const filename = `${id}.${ext}`;
+    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+    
+    fs.writeFileSync(path.join(UPLOAD_DIR, filename), Buffer.from(base64Data, 'base64'));
+    
+    console.log('[Upload] 保存截图:', filename);
+    return json(res, { success: true, id, filename, url: `/data/uploads/${filename}` });
+  }
+
+  // GET /api/screenshots — 列出所有上传的截图
+  if (pathname === '/api/screenshots' && req.method === 'GET') {
+    const UPLOAD_DIR = path.join(__dirname, '..', 'data', 'uploads');
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      return json(res, { screenshots: [] });
+    }
+    const files = fs.readdirSync(UPLOAD_DIR).filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg'));
+    const screenshots = files.map(f => ({
+      filename: f,
+      url: `/data/uploads/${f}`,
+      addedAt: fs.statSync(path.join(UPLOAD_DIR, f)).mtime.toISOString()
+    })).sort((a,b) => new Date(b.addedAt) - new Date(a.addedAt));
+    return json(res, { screenshots });
+  }
+
+  // GET /data/uploads/* — 静态文件服务
+  if (pathname.startsWith('/data/uploads/')) {
+    const file = path.join(__dirname, '..', pathname);
+    if (fs.existsSync(file)) {
+      const ext = path.extname(file).slice(1);
+      res.writeHead(200, { 'Content-Type': MIME[('.'+ext)] || 'image/png' });
+      fs.createReadStream(file).pipe(res);
+    } else {
+      res.writeHead(404);
+      res.end('Not Found');
+    }
+    return;
   }
 
   // GET /api/summary — 聚合数据给前端一次性加载

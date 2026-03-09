@@ -326,10 +326,12 @@
           <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
           <input type="file" id="folderInput" webkitdirectory multiple style="display:none" />
         </div>
-        <div style="display:flex;gap:10px;margin-top:10px">
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
           <button class="btn btn-s" onclick="document.getElementById('fileInput').click()" style="font-size:13px;padding:8px 16px">📄 选择图片</button>
           <button class="btn btn-s" onclick="document.getElementById('folderInput').click()" style="font-size:13px;padding:8px 16px">📂 选择文件夹</button>
+          <button class="btn btn-p" onclick="requestAiOcr()" style="font-size:13px;padding:8px 16px">🧚 AI识别</button>
         </div>
+        <div id="aiOcrTip" style="font-size:11px;color:var(--text-dim);margin-top:8px">上传截图后点击「🧚 AI识别」，我会用多模态模型自动识别并更新持仓</div>
         <div id="previewGrid" class="preview-grid"></div>
       </div>
     </div>
@@ -368,6 +370,7 @@
 <script>
 const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
 const DATA_URL='data/real-portfolio.json';
+const API_BASE=''; // 同源，服务器在 3927
 const LS_KEY='invest_spirit_real';
 
 function $(id){return document.getElementById(id)}
@@ -594,20 +597,48 @@ function handleFiles(fileList){
   const imgs=Array.from(fileList).filter(f=>f.type.startsWith('image/')&&f.size<15*1024*1024);
   if(!imgs.length) return;
 
-  // Save screenshots
   let loaded=0;
   const dataUrls=[];
+  
+  // Show loading
+  toast('正在上传截图...', true);
+
   imgs.forEach((file,i)=>{
     const reader=new FileReader();
-    reader.onload=e=>{
+    reader.onload=async e=>{
       const du=e.target.result;
       dataUrls[i]=du;
-      DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+      
+      // Upload to server first
+      try {
+        const resp=await fetch('/api/upload',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({image:du})
+        });
+        const result=await resp.json();
+        if(result.success){
+          // Store server URL too
+          DATA.screenshots.push({
+            fileName:file.name,
+            dataUrl:du,
+            serverUrl:result.url,
+            serverId:result.id,
+            addedAt:new Date().toISOString()
+          });
+        } else {
+          DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+        }
+      }catch(err){
+        DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+      }
+      
       loaded++;
       if(loaded===imgs.length){
-        DATA.lastUpdated=new Date().toISOString();saveLocal();renderScreenshots();
-        // Start OCR
-        runOcr(dataUrls.filter(Boolean));
+        DATA.lastUpdated=new Date().toISOString();
+        saveLocal();
+        renderScreenshots();
+        toast(loaded+'张截图已保存，点击「🧚 AI识别」让我识别', true);
       }
     };
     reader.readAsDataURL(file);
@@ -747,6 +778,23 @@ function confirmOcr(){
 function closeOcrModal(){
   $('ocrModal').style.display='none';
   ocrParsedItems=[];
+}
+
+function requestAiOcr(){
+  const screenshots = DATA.screenshots || [];
+  if(!screenshots.length){
+    toast('请先上传截图', false);
+    return;
+  }
+  // Show instruction
+  const last = screenshots[screenshots.length-1];
+  toast('截图已保存，请把最新截图发给我（上传到这里对话框），我会用多模态模型识别后更新持仓', true);
+  
+  // Could also open a modal showing the latest screenshot for user to copy/send
+  $('ocrModal').style.display='flex';
+  $('ocrProgress').style.display='none';
+  $('ocrResultWrap').style.display='block';
+  $('ocrRawText').innerHTML='<div style="text-align:center;padding:20px"><p style="margin-bottom:16px">请把下方截图保存后发送给我</p><img src="'+last.dataUrl+'" style="max-width:100%;border-radius:8px"><br><br><button class="btn btn-s" onclick="closeOcrModal()">关闭</button></div>';
 }
 
 function renderScreenshots(){
