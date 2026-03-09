@@ -9,8 +9,8 @@
       "totalCost": 25000,
       "totalShares": 12692.93257514216,
       "avgCostNav": 1.9696,
-      "currentNav": 1.9939,
-      "currentValue": 25308.44,
+      "currentNav": 1.9800,
+      "currentValue": 25132.01,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -20,8 +20,8 @@
       "totalCost": 20000,
       "totalShares": 12803.277639075603,
       "avgCostNav": 1.5621,
-      "currentNav": 1.5565,
-      "currentValue": 19928.3,
+      "currentNav": 1.5585,
+      "currentValue": 19952.31,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -31,8 +31,8 @@
       "totalCost": 20000,
       "totalShares": 5863.383172090296,
       "avgCostNav": 3.411,
-      "currentNav": 3.4249,
-      "currentValue": 20081.5,
+      "currentNav": 3.4430,
+      "currentValue": 20196.65,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -42,8 +42,8 @@
       "totalCost": 20000,
       "totalShares": 2225.114871555244,
       "avgCostNav": 8.9883,
-      "currentNav": 8.9587,
-      "currentValue": 19934.14,
+      "currentNav": 8.8948,
+      "currentValue": 19792.45,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     },
@@ -53,13 +53,14 @@
       "totalCost": 15000,
       "totalShares": 22338.04914370812,
       "avgCostNav": 0.6715,
-      "currentNav": 0.6844,
-      "currentValue": 15288.16,
+      "currentNav": 0.6857,
+      "currentValue": 15314.70,
       "firstBuyDate": "2026-03-04",
       "lastOpDate": "2026-03-04"
     }
   ],
-  "totalProfit": 540.54,
-  "totalProfitRate": 0.5405,
-  "lastUpdated": "2026-03-09 14:30:00"
+  "totalProfit": 387.42,
+  "totalProfitRate": 0.3874,
+  "lastUpdated": "2026-03-09 20:00:00",
+  "source": "actual"
 }
