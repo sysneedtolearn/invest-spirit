@@ -469,42 +469,6 @@ $('tabBar').addEventListener('click',e=>{
   tab.classList.add('active');
 });
 
-// --- Init ---
-// 检查是否已登录（localStorage 存登录状态）
-function checkLogin(){
-  const isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
-  if(isLoggedIn === 'true'){
-    $('loginPage').style.display='none';
-    $('mainContent').style.display='block';
-    loadData(); // 加载数据
-  }
-}
-
-async function loadData(){
-  // 优先从 localStorage，没有就用服务器的
-  const local=getLocal();
-  if(local && local.positions && local.positions.length>0){
-    DATA.positions=local.positions;
-    DATA.operations=local.operations||[];
-    DATA.screenshots=local.screenshots||[];
-    DATA.lastUpdated=local.lastUpdated;
-  } else {
-    try{
-      const r=await fetch(DATA_URL+'?t='+Date.now());
-      const server=await r.json();
-      if(server.positions && server.positions.length>0){
-        DATA.positions=server.positions;
-        DATA.operations=server.operations||[];
-        DATA.screenshots=server.screenshots||[];
-        DATA.lastUpdated=server.lastUpdated;
-        saveLocal();
-      }
-    }catch(e){console.log('Load failed',e)}
-  }
-  renderAll();
-}
-window.onload=checkLogin;
-
 // --- Save Position ---
 function savePosition(){
   const name=$('f_name').value.trim();
