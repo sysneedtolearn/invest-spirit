@@ -422,10 +422,10 @@ async function doLogin(){
     const hash=await sha256(pwd);
     if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
 
-    // Merge: local takes priority if newer
+    // 优先用 localStorage（刷新页面不丢失）
     const local=getLocal();
-    if(local && local.lastUpdated && (!server.lastUpdated || new Date(local.lastUpdated)>new Date(server.lastUpdated))){
-      DATA.positions=local.positions||[];
+    if(local && local.positions && local.positions.length>0){
+      DATA.positions=local.positions;
       DATA.operations=local.operations||[];
       DATA.screenshots=local.screenshots||[];
       DATA.lastUpdated=local.lastUpdated;
@@ -434,6 +434,8 @@ async function doLogin(){
       DATA.operations=server.operations||[];
       DATA.screenshots=server.screenshots||[];
       DATA.lastUpdated=server.lastUpdated;
+      // 同步到 localStorage
+      saveLocal();
     }
 
     $('loginPage').style.display='none';
