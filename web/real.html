@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🧚 投资精灵 - 实盘</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     :root {
       --bg: #0a0a12; --card: #13132a; --card-hover: #1a1a36;
@@ -176,6 +177,28 @@
       .total-amount { font-size:26px; }
       .form-row { flex-direction:column; }
     }
+    /* OCR Modal */
+    .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; display:flex; justify-content:center; align-items:center; padding:20px; }
+    .modal { background:var(--card); border-radius:18px; border:1px solid var(--border); padding:28px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
+    .modal h3 { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .modal-close { float:right; background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer; }
+    .modal-close:hover { color:var(--text); }
+    .ocr-progress { margin:16px 0; }
+    .ocr-progress-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .ocr-progress-fill { height:100%; background:var(--accent); border-radius:3px; transition:width .3s; width:0; }
+    .ocr-progress-text { font-size:12px; color:var(--text-dim); margin-top:6px; }
+    .ocr-result { background:var(--bg); border-radius:10px; padding:14px; font-size:12px; color:var(--text-dim); max-height:120px; overflow-y:auto; white-space:pre-wrap; margin:12px 0; font-family:monospace; border:1px solid var(--border); }
+    .ocr-parsed { margin:16px 0; }
+    .ocr-parsed-item { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+    .ocr-parsed-item .opi-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .ocr-parsed-item .opi-name { font-weight:700; font-size:15px; }
+    .ocr-parsed-item .opi-code { font-size:12px; color:var(--text-dim); }
+    .ocr-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .ocr-field { display:flex; flex-direction:column; gap:3px; flex:1; min-width:100px; }
+    .ocr-field label { font-size:10px; color:var(--text-dim); text-transform:uppercase; }
+    .ocr-field input { padding:8px; border-radius:6px; border:1px solid var(--border-light); background:var(--card); color:var(--text); font-size:13px; outline:none; }
+    .ocr-field input:focus { border-color:var(--accent); }
+
     ::-webkit-scrollbar { width:6px; }
     ::-webkit-scrollbar-track { background:var(--bg); }
     ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -295,11 +318,11 @@
 
       <!-- 截图凭证 -->
       <div class="input-section">
-        <h3>📸 上传截图凭证</h3>
+        <h3>📸 上传截图（自动识别持仓）</h3>
         <div class="upload-zone" id="uploadZone">
           <div class="uz-icon">📂</div>
           <div class="uz-main">点击选择图片 / 文件夹，或拖拽到此处</div>
-          <div class="uz-sub">截图作为操作凭证保存，支持多选和文件夹</div>
+          <div class="uz-sub">上传持仓截图，自动 OCR 识别 → 确认 → 更新持仓</div>
           <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
           <input type="file" id="folderInput" webkitdirectory multiple style="display:none" />
         </div>
@@ -320,6 +343,27 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- OCR Modal -->
+  <div id="ocrModal" class="modal-bg" style="display:none">
+    <div class="modal">
+      <button class="modal-close" onclick="closeOcrModal()">✕</button>
+      <h3>📸 OCR 识别结果</h3>
+      <div class="ocr-progress" id="ocrProgress">
+        <div class="ocr-progress-bar"><div class="ocr-progress-fill" id="ocrProgressFill"></div></div>
+        <div class="ocr-progress-text" id="ocrProgressText">正在初始化识别引擎...</div>
+      </div>
+      <div id="ocrResultWrap" style="display:none">
+        <div class="ocr-result" id="ocrRawText"></div>
+        <h4 style="font-size:13px;margin:16px 0 10px">📋 识别到的持仓（请确认）</h4>
+        <div class="ocr-parsed" id="ocrParsed"></div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn btn-p" onclick="confirmOcr()">✅ 确认添加</button>
+          <button class="btn btn-s" onclick="closeOcrModal()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
 const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
@@ -544,20 +588,165 @@ uploadZone.addEventListener('click',e=>{
 $('fileInput').addEventListener('change',function(){handleFiles(this.files)});
 $('folderInput').addEventListener('change',function(){handleFiles(this.files)});
 
+let ocrParsedItems=[];
+
 function handleFiles(fileList){
   const imgs=Array.from(fileList).filter(f=>f.type.startsWith('image/')&&f.size<15*1024*1024);
   if(!imgs.length) return;
-  let count=0;
-  imgs.forEach(file=>{
+
+  // Save screenshots
+  let loaded=0;
+  const dataUrls=[];
+  imgs.forEach((file,i)=>{
     const reader=new FileReader();
     reader.onload=e=>{
-      DATA.screenshots.push({fileName:file.name,dataUrl:e.target.result,addedAt:new Date().toISOString()});
-      count++;
-      if(count===imgs.length){DATA.lastUpdated=new Date().toISOString();saveLocal();renderScreenshots();toast(count+'张截图已保存',true)}
+      const du=e.target.result;
+      dataUrls[i]=du;
+      DATA.screenshots.push({fileName:file.name,dataUrl:du,addedAt:new Date().toISOString()});
+      loaded++;
+      if(loaded===imgs.length){
+        DATA.lastUpdated=new Date().toISOString();saveLocal();renderScreenshots();
+        // Start OCR
+        runOcr(dataUrls.filter(Boolean));
+      }
     };
     reader.readAsDataURL(file);
   });
   $('fileInput').value='';$('folderInput').value='';
+}
+
+async function runOcr(dataUrls){
+  $('ocrModal').style.display='flex';
+  $('ocrResultWrap').style.display='none';
+  $('ocrProgress').style.display='block';
+  $('ocrProgressFill').style.width='5%';
+  $('ocrProgressText').textContent='正在初始化 OCR 引擎...';
+  ocrParsedItems=[];
+
+  let allText='';
+  try{
+    for(let i=0;i<dataUrls.length;i++){
+      $('ocrProgressText').textContent='识别第 '+(i+1)+'/'+dataUrls.length+' 张截图...';
+      $('ocrProgressFill').style.width=((i/dataUrls.length)*80+10)+'%';
+      const result=await Tesseract.recognize(dataUrls[i],'chi_sim+eng',{
+        logger:m=>{
+          if(m.status==='recognizing text'){
+            const pct=Math.round((i/dataUrls.length+m.progress/dataUrls.length)*80+10);
+            $('ocrProgressFill').style.width=pct+'%';
+          }
+        }
+      });
+      allText+=result.data.text+'\n---\n';
+    }
+  }catch(e){
+    $('ocrProgressText').textContent='❌ OCR 识别失败: '+e.message;
+    return;
+  }
+
+  $('ocrProgressFill').style.width='95%';
+  $('ocrProgressText').textContent='正在解析持仓数据...';
+
+  // Parse
+  ocrParsedItems=parseOcrText(allText);
+
+  $('ocrProgressFill').style.width='100%';
+  $('ocrProgress').style.display='none';
+  $('ocrResultWrap').style.display='block';
+  $('ocrRawText').textContent=allText;
+
+  renderOcrParsed();
+}
+
+function parseOcrText(text){
+  const items=[];
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    // Try to find fund/stock names with codes
+    // Common patterns: "基金名称 代码 净值 持有份额 持有金额 收益"
+    const codeMatch=line.match(/(\d{6})/);
+    const moneyMatches=line.match(/[\d,]+\.\d{2}/g);
+
+    // Heuristic: line has a 6-digit code and at least one money amount
+    if(codeMatch && moneyMatches && moneyMatches.length>=1){
+      // Try to extract name (text before the code)
+      let name=line.substring(0,line.indexOf(codeMatch[1])).replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g,'').trim();
+      if(!name && i>0) name=lines[i-1].replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g,'').trim();
+
+      const nums=moneyMatches.map(m=>parseFloat(m.replace(/,/g,'')));
+      // Guess: largest number is likely market value, second largest cost
+      const sorted=[...nums].sort((a,b)=>b-a);
+
+      items.push({
+        name:name||'未识别',
+        code:codeMatch[1],
+        totalCost:sorted[1]||sorted[0]||0,
+        currentValue:sorted[0]||0,
+        totalShares:0
+      });
+    }
+    // Also try: line has Chinese fund name + money amounts but no code
+    else if(/[\u4e00-\u9fa5]{2,}/.test(line) && moneyMatches && moneyMatches.length>=2 && !codeMatch){
+      const name=line.match(/([\u4e00-\u9fa5a-zA-Z]+)/)?.[1]||'';
+      if(name.length>=2 && !/合计|总计|收益|日期|时间/.test(name)){
+        const nums=moneyMatches.map(m=>parseFloat(m.replace(/,/g,'')));
+        const sorted=[...nums].sort((a,b)=>b-a);
+        items.push({
+          name,code:'',
+          totalCost:sorted[1]||sorted[0]||0,
+          currentValue:sorted[0]||0,
+          totalShares:0
+        });
+      }
+    }
+  }
+  return items;
+}
+
+function renderOcrParsed(){
+  const el=$('ocrParsed');
+  if(!ocrParsedItems.length){
+    el.innerHTML='<div style="color:var(--text-dim);font-size:13px;padding:16px">未能自动识别出持仓。你可以手动添加，或上传更清晰的截图。</div>';
+    return;
+  }
+  el.innerHTML=ocrParsedItems.map((p,i)=>
+    '<div class="ocr-parsed-item">'
+    +'<div class="opi-head"><span class="opi-name">'+p.name+'</span><span class="opi-code">'+p.code+'</span></div>'
+    +'<div class="ocr-row">'
+    +'<div class="ocr-field"><label>名称</label><input id="ocr_name_'+i+'" value="'+p.name+'" /></div>'
+    +'<div class="ocr-field"><label>代码</label><input id="ocr_code_'+i+'" value="'+p.code+'" /></div>'
+    +'<div class="ocr-field"><label>持仓成本</label><input id="ocr_cost_'+i+'" type="number" value="'+p.totalCost+'" /></div>'
+    +'<div class="ocr-field"><label>当前市值</label><input id="ocr_value_'+i+'" type="number" value="'+p.currentValue+'" /></div>'
+    +'</div></div>'
+  ).join('');
+}
+
+function confirmOcr(){
+  let added=0;
+  ocrParsedItems.forEach((p,i)=>{
+    const name=$('ocr_name_'+i).value.trim();
+    const code=$('ocr_code_'+i).value.trim();
+    const cost=parseFloat($('ocr_cost_'+i).value)||0;
+    const value=parseFloat($('ocr_value_'+i).value)||0;
+    if(!name||(!cost&&!value)) return;
+
+    const idx=DATA.positions.findIndex(x=>x.name===name||(code&&x.code===code));
+    const pos={name,code,totalCost:cost,currentValue:value,totalShares:0};
+    if(idx>=0) DATA.positions[idx]=pos; else DATA.positions.push(pos);
+    added++;
+  });
+  if(added){
+    DATA.lastUpdated=new Date().toISOString();
+    saveLocal(); renderAll();
+    toast(added+'条持仓已更新',true);
+  }
+  closeOcrModal();
+}
+
+function closeOcrModal(){
+  $('ocrModal').style.display='none';
+  ocrParsedItems=[];
 }
 
 function renderScreenshots(){
