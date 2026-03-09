@@ -378,8 +378,9 @@ const LS_KEY='invest_spirit_real';
 // --- Init ---
 // 检查是否已登录
 function checkLogin(){
-  const isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
-  if(isLoggedIn === 'true'){
+  var isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
+  console.log('isLoggedIn =', isLoggedIn, typeof isLoggedIn);
+  if(isLoggedIn){
     $('loginPage').style.display='none';
     $('mainContent').style.display='block';
     loadData();
