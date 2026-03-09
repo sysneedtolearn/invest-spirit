@@ -41,7 +41,7 @@
     .tab:hover { color:var(--text); background:rgba(255,255,255,.03); }
     .tab.active { background:var(--accent); color:white; box-shadow:0 2px 12px var(--accent-glow); }
 
-    .tbl-wrap { background:var(--card); border-radius:14px; border:1px solid var(--border); overflow:hidden; margin-bottom:24px; }
+    .tbl-wrap { background:var(--card); border-radius:14px; border:1px solid var(--border); overflow-x:auto; margin-bottom:24px; }
     table { width:100%; border-collapse:collapse; }
     th { text-align:left; padding:14px 18px; font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-dim); border-bottom:1px solid var(--border); font-weight:600; background:rgba(0,0,0,.2); }
     td { padding:16px 18px; font-size:14px; border-bottom:1px solid var(--border); }
@@ -95,6 +95,8 @@
     .btn-p:hover { background:#6b4fe6; }
     .btn-s { background:var(--card); color:var(--text); border:1px solid var(--border); }
     .btn-s:hover { border-color:var(--accent); color:var(--accent-light); }
+    .btn-danger { background:var(--red-bg); color:var(--red); border:1px solid rgba(239,68,68,.2); }
+    .btn-danger:hover { background:var(--red); color:white; }
 
     .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--text-dim); }
     .empty { text-align:center; padding:60px 20px; color:var(--text-dim); }
@@ -102,66 +104,69 @@
     .empty p { font-size:14px; max-width:400px; margin:0 auto; line-height:1.7; }
 
     /* === Input Tab === */
-    .input-section { margin-bottom:28px; }
+    .input-section { margin-bottom:32px; }
     .input-section h3 { font-size:15px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
 
     .upload-zone {
       border:2px dashed var(--border-light); border-radius:16px; padding:40px 20px;
-      text-align:center; cursor:pointer; transition:all .25s; position:relative;
-      background:rgba(124,92,252,.02);
+      text-align:center; cursor:pointer; transition:all .25s; background:rgba(124,92,252,.02);
     }
     .upload-zone:hover, .upload-zone.dragover { border-color:var(--accent); background:rgba(124,92,252,.06); }
     .upload-zone .uz-icon { font-size:40px; margin-bottom:12px; }
     .upload-zone .uz-main { font-size:14px; font-weight:600; margin-bottom:6px; }
     .upload-zone .uz-sub { font-size:12px; color:var(--text-dim); }
-    .upload-zone input { display:none; }
 
-    .preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-top:16px; }
-    .preview-card { background:var(--card); border-radius:12px; border:1px solid var(--border); overflow:hidden; position:relative; }
-    .preview-card img { width:100%; height:120px; object-fit:cover; display:block; }
-    .preview-card .pc-name { padding:8px 10px; font-size:11px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .preview-card .pc-del { position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; background:rgba(0,0,0,.7); color:white; border:none; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; }
-    .preview-card .pc-status { padding:4px 8px; font-size:10px; font-weight:600; }
-    .pc-pending { background:var(--yellow-bg); color:var(--yellow); }
-    .pc-done { background:var(--green-bg); color:var(--green); }
+    .preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:14px; }
+    .preview-card { background:var(--card); border-radius:10px; border:1px solid var(--border); overflow:hidden; position:relative; }
+    .preview-card img { width:100%; height:100px; object-fit:cover; display:block; }
+    .preview-card .pc-name { padding:6px 8px; font-size:10px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .preview-card .pc-del { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.7); color:white; border:none; cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; }
 
-    .text-input-area { display:flex; gap:10px; margin-top:16px; }
-    .text-input-area textarea {
-      flex:1; padding:14px; border-radius:12px; border:1px solid var(--border-light);
-      background:var(--card); color:var(--text); font-size:14px; resize:vertical;
-      min-height:80px; outline:none; transition:border .2s; font-family:inherit; line-height:1.6;
+    /* Form */
+    .form-card { background:var(--card); border-radius:14px; border:1px solid var(--border); padding:24px; margin-bottom:16px; }
+    .form-row { display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+    .form-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+    .form-group label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+    .form-group input, .form-group select {
+      padding:10px 12px; border-radius:8px; border:1px solid var(--border-light);
+      background:var(--bg); color:var(--text); font-size:14px; outline:none; transition:border .2s;
     }
-    .text-input-area textarea:focus { border-color:var(--accent); }
-    .text-input-area textarea::placeholder { color:var(--text-dim); }
+    .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+    .form-group select { cursor:pointer; }
+    .form-group select option { background:var(--card); }
 
+    .voice-row { display:flex; gap:10px; align-items:flex-end; }
     .voice-btn {
-      width:56px; height:56px; border-radius:50%; border:2px solid var(--border-light);
-      background:var(--card); color:var(--text-dim); font-size:22px; cursor:pointer;
+      width:48px; height:48px; border-radius:50%; border:2px solid var(--border-light);
+      background:var(--card); color:var(--text-dim); font-size:20px; cursor:pointer;
       display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0;
-      align-self:flex-end;
     }
     .voice-btn:hover { border-color:var(--accent); color:var(--accent-light); }
     .voice-btn.recording { border-color:var(--red); color:var(--red); background:var(--red-bg); animation:pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
 
-    .queue-card {
-      background:var(--card); border-radius:12px; border:1px solid var(--border); padding:16px; margin-bottom:10px;
-      display:flex; justify-content:space-between; align-items:center; gap:12px;
+    .text-input-wrap textarea {
+      width:100%; padding:14px; border-radius:12px; border:1px solid var(--border-light);
+      background:var(--card); color:var(--text); font-size:14px; resize:vertical;
+      min-height:70px; outline:none; transition:border .2s; font-family:inherit; line-height:1.6;
     }
-    .queue-card .qc-content { flex:1; min-width:0; }
-    .queue-card .qc-type { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
-    .queue-card .qc-text { font-size:13px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .queue-card .qc-time { font-size:11px; color:var(--text-dim); white-space:nowrap; }
-    .queue-card .qc-del { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px; padding:4px; }
-    .queue-card .qc-del:hover { color:var(--red); }
-    .queue-status { padding:3px 10px; border-radius:12px; font-size:10px; font-weight:700; }
+    .text-input-wrap textarea:focus { border-color:var(--accent); }
+    .text-input-wrap textarea::placeholder { color:var(--text-dim); }
 
-    .pending-banner {
-      background:rgba(234,179,8,.08); border:1px solid rgba(234,179,8,.2); border-radius:12px;
-      padding:14px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;
+    .toast {
+      position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+      padding:12px 28px; border-radius:10px; font-size:14px; font-weight:600;
+      z-index:100; opacity:0; transition:opacity .3s; pointer-events:none;
     }
-    .pending-banner .pb-text { font-size:13px; color:var(--yellow); }
-    .pending-banner .pb-count { font-size:20px; font-weight:800; color:var(--yellow); }
+    .toast.show { opacity:1; }
+    .toast-ok { background:var(--green); color:white; }
+    .toast-err { background:var(--red); color:white; }
+
+    /* Positions manage */
+    .pos-actions { display:flex; gap:8px; }
+    .pos-actions button { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:none; color:var(--text-dim); cursor:pointer; font-size:11px; transition:all .15s; }
+    .pos-actions button:hover { border-color:var(--accent); color:var(--accent-light); }
+    .pos-actions .del-btn:hover { border-color:var(--red); color:var(--red); }
 
     @media (max-width:900px) { .stats { grid-template-columns:repeat(2,1fr); } }
     @media (max-width:640px) {
@@ -169,8 +174,7 @@
       .header { flex-direction:column; gap:20px; }
       .header-right { text-align:left; }
       .total-amount { font-size:26px; }
-      .op-head { flex-direction:column; align-items:flex-start; }
-      .preview-grid { grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); }
+      .form-row { flex-direction:column; }
     }
     ::-webkit-scrollbar { width:6px; }
     ::-webkit-scrollbar-track { background:var(--bg); }
@@ -195,10 +199,7 @@
     <div class="header">
       <div class="logo-area">
         <div class="logo">📸</div>
-        <div>
-          <h1>投资精灵 · 实盘</h1>
-          <div class="subtitle">真实持仓 · Mochi 智能分析</div>
-        </div>
+        <div><h1>投资精灵 · 实盘</h1><div class="subtitle">真实持仓 · 自主管理</div></div>
       </div>
       <div class="header-right">
         <div class="total-label">总市值</div>
@@ -218,342 +219,406 @@
     <div class="tabs" id="tabBar">
       <button class="tab active" data-tab="positions">💼 持仓总览</button>
       <button class="tab" data-tab="input">✏️ 录入操作</button>
-      <button class="tab" data-tab="analysis">🧚 投资建议</button>
       <button class="tab" data-tab="operations">📋 操作记录</button>
     </div>
 
+    <!-- 持仓总览 -->
     <div id="tab-positions" class="tab-content">
       <div id="allocSection"></div>
       <div id="positionsTable" class="tbl-wrap">
-        <div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」上传截图或输入文字。</p></div>
+        <div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」添加持仓。</p></div>
       </div>
     </div>
 
+    <!-- 录入操作 -->
     <div id="tab-input" class="tab-content" style="display:none">
-      <!-- Pending Banner -->
-      <div id="pendingBanner" class="pending-banner" style="display:none">
-        <div class="pb-text">⏳ 有待处理的录入，Mochi 将自动同步更新</div>
-        <div class="pb-count" id="pendingCount">0</div>
+
+      <!-- 新增/编辑持仓 -->
+      <div class="input-section">
+        <h3>📊 新增 / 更新持仓</h3>
+        <div class="form-card">
+          <div class="form-row">
+            <div class="form-group"><label>基金/股票名称</label><input id="f_name" placeholder="如：易方达蓝筹" /></div>
+            <div class="form-group"><label>代码</label><input id="f_code" placeholder="如：005827" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>持仓成本 (元)</label><input id="f_cost" type="number" placeholder="总投入金额" /></div>
+            <div class="form-group"><label>当前市值 (元)</label><input id="f_value" type="number" placeholder="当前价值" /></div>
+            <div class="form-group"><label>持有份额</label><input id="f_shares" type="number" placeholder="可选" /></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn btn-p" onclick="savePosition()" style="padding:10px 24px">💾 保存持仓</button>
+            <button class="btn btn-s" onclick="clearForm()" style="padding:10px 20px">清空</button>
+          </div>
+          <div id="formMsg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+        </div>
       </div>
 
-      <!-- Screenshot Upload -->
+      <!-- 记录操作 -->
       <div class="input-section">
-        <h3>📸 上传截图</h3>
+        <h3>📋 记录一笔操作</h3>
+        <div class="form-card">
+          <div class="form-row">
+            <div class="form-group"><label>操作类型</label>
+              <select id="o_type"><option>买入</option><option>卖出</option><option>加仓</option><option>减仓</option><option>定投</option><option>转换</option></select>
+            </div>
+            <div class="form-group"><label>基金/股票名称</label><input id="o_name" placeholder="如：易方达蓝筹" /></div>
+            <div class="form-group"><label>代码</label><input id="o_code" placeholder="如：005827" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>金额 (元)</label><input id="o_amount" type="number" placeholder="操作金额" /></div>
+            <div class="form-group"><label>日期</label><input id="o_date" type="date" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:3"><label>备注/原因</label><input id="o_reason" placeholder="可选" /></div>
+          </div>
+          <button class="btn btn-p" onclick="saveOperation()" style="padding:10px 24px">✅ 记录操作</button>
+          <div id="opMsg" style="font-size:12px;margin-top:8px;min-height:18px"></div>
+        </div>
+      </div>
+
+      <!-- 语音/文字快捷录入 -->
+      <div class="input-section">
+        <h3>🎙️ 语音 / 文字快捷录入</h3>
+        <div class="form-card">
+          <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">说或写一句话描述操作，如"买入1万易方达蓝筹"，自动解析填入上方表单</p>
+          <div class="voice-row">
+            <div class="text-input-wrap" style="flex:1">
+              <textarea id="quickInput" rows="2" placeholder="输入描述或用语音..."></textarea>
+            </div>
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎙️</button>
+            <button class="btn btn-p" onclick="parseQuickInput()" style="padding:10px 20px;align-self:flex-end">解析</button>
+          </div>
+          <div id="voiceStatus" style="font-size:12px;color:var(--text-dim);margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- 截图凭证 -->
+      <div class="input-section">
+        <h3>📸 上传截图凭证</h3>
         <div class="upload-zone" id="uploadZone">
           <div class="uz-icon">📂</div>
           <div class="uz-main">点击选择图片 / 文件夹，或拖拽到此处</div>
-          <div class="uz-sub">支持 PNG / JPG / WEBP，支持选择文件夹批量上传</div>
-          <input type="file" id="fileInput" accept="image/*" multiple />
-          <input type="file" id="folderInput" webkitdirectory multiple />
+          <div class="uz-sub">截图作为操作凭证保存，支持多选和文件夹</div>
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
+          <input type="file" id="folderInput" webkitdirectory multiple style="display:none" />
         </div>
         <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btn btn-s" onclick="$('fileInput').click()" style="font-size:13px;padding:8px 16px">📄 选择图片</button>
-          <button class="btn btn-s" onclick="$('folderInput').click()" style="font-size:13px;padding:8px 16px">📂 选择文件夹</button>
+          <button class="btn btn-s" onclick="document.getElementById('fileInput').click()" style="font-size:13px;padding:8px 16px">📄 选择图片</button>
+          <button class="btn btn-s" onclick="document.getElementById('folderInput').click()" style="font-size:13px;padding:8px 16px">📂 选择文件夹</button>
         </div>
         <div id="previewGrid" class="preview-grid"></div>
       </div>
-
-      <!-- Text Input -->
-      <div class="input-section">
-        <h3>✏️ 文字录入</h3>
-        <div class="text-input-area">
-          <textarea id="textInput" placeholder="描述你的操作，例如：&#10;今天买入1万易方达蓝筹&#10;卖出了5000元半导体&#10;定投2000元沪深300"></textarea>
-          <div style="display:flex;flex-direction:column;gap:8px;align-self:flex-end">
-            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎙️</button>
-            <button class="btn btn-p" onclick="submitText()" style="padding:10px 20px;font-size:13px">发送</button>
-          </div>
-        </div>
-        <div id="voiceStatus" style="font-size:12px;color:var(--text-dim);margin-top:8px"></div>
-      </div>
-
-      <!-- Queue -->
-      <div class="input-section">
-        <h3>📋 待处理队列 <span id="queueCount" style="font-size:13px;color:var(--text-dim);font-weight:400"></span></h3>
-        <div id="queueList"></div>
-      </div>
     </div>
 
-    <div id="tab-analysis" class="tab-content" style="display:none">
-      <div id="analysisBox">
-        <div class="empty"><div class="em">🧚</div><p>暂无投资建议。<br>上传持仓截图后 Mochi 将自动生成分析。</p></div>
-      </div>
-    </div>
-
+    <!-- 操作记录 -->
     <div id="tab-operations" class="tab-content" style="display:none">
       <div id="opsBox">
-        <div class="empty"><div class="em">📋</div><p>暂无操作记录。<br>去「✏️ 录入操作」上传截图或输入文字。</p></div>
+        <div class="empty"><div class="em">📋</div><p>暂无操作记录。<br>去「✏️ 录入操作」记录你的操作。</p></div>
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
 <script>
-const COLORS = ['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
-const DATA_URL = 'data/real-portfolio.json';
-const QUEUE_KEY = 'invest_spirit_real_queue';
-let RD = null;
+const COLORS=['#7c5cfc','#22c55e','#ef4444','#eab308','#06b6d4','#f97316','#ec4899','#8b5cf6','#14b8a6','#f43f5e'];
+const DATA_URL='data/real-portfolio.json';
+const LS_KEY='invest_spirit_real';
 
-function $(id) { return document.getElementById(id); }
-function fmtCny(n) { return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtPct(n) { return (n>=0?'+':'')+Number(n||0).toFixed(2)+'%'; }
-function cls(n) { return n>0.001?'positive':n<-0.001?'negative':'neutral'; }
-function fmtTime(ts) { return new Date(ts).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function $(id){return document.getElementById(id)}
+function fmtCny(n){return '¥'+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtPct(n){return (n>=0?'+':'')+Number(n||0).toFixed(2)+'%'}
+function cls(n){return n>0.001?'positive':n<-0.001?'negative':'neutral'}
 
-// Tab switching
-$('tabBar').addEventListener('click', e => {
-  const tab = e.target.closest('.tab');
-  if (!tab) return;
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display='none');
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+function toast(msg,ok){
+  const t=$('toast');
+  t.textContent=msg; t.className='toast show '+(ok?'toast-ok':'toast-err');
+  setTimeout(()=>t.className='toast',2500);
+}
+
+// --- Local Data ---
+// Merge: server JSON is base, localStorage overrides
+let DATA={positions:[],operations:[],screenshots:[],lastUpdated:null};
+
+function getLocal(){
+  try{return JSON.parse(localStorage.getItem(LS_KEY))||null}catch(e){return null}
+}
+function saveLocal(){
+  const save={positions:DATA.positions,operations:DATA.operations,screenshots:DATA.screenshots,lastUpdated:DATA.lastUpdated};
+  localStorage.setItem(LS_KEY,JSON.stringify(save));
+}
+
+// --- Tab ---
+$('tabBar').addEventListener('click',e=>{
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab.dataset.tab).style.display='block';
   tab.classList.add('active');
 });
 
 // --- Auth ---
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+async function sha256(t){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-$('pwdInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+$('pwdInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 
-async function doLogin() {
-  const pwd = $('pwdInput').value.trim();
-  if (!pwd) return;
-  $('loginErr').textContent = '';
-  try {
-    const r = await fetch(DATA_URL+'?t='+Date.now());
-    if (!r.ok) { $('loginErr').textContent='数据加载失败'; return; }
-    RD = await r.json();
-    const hash = await sha256(pwd);
-    if (hash === RD.passwordHash) {
-      $('loginPage').style.display='none';
-      $('mainContent').style.display='block';
-      render();
-      renderQueue();
+async function doLogin(){
+  const pwd=$('pwdInput').value.trim(); if(!pwd) return;
+  $('loginErr').textContent='';
+  try{
+    const r=await fetch(DATA_URL+'?t='+Date.now());
+    if(!r.ok){$('loginErr').textContent='数据加载失败';return}
+    const server=await r.json();
+    const hash=await sha256(pwd);
+    if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
+
+    // Merge: local takes priority if newer
+    const local=getLocal();
+    if(local && local.lastUpdated && (!server.lastUpdated || new Date(local.lastUpdated)>new Date(server.lastUpdated))){
+      DATA.positions=local.positions||[];
+      DATA.operations=local.operations||[];
+      DATA.screenshots=local.screenshots||[];
+      DATA.lastUpdated=local.lastUpdated;
     } else {
-      $('loginErr').textContent='密码错误';
-      $('pwdInput').value='';
-      $('pwdInput').focus();
+      DATA.positions=server.positions||[];
+      DATA.operations=server.operations||[];
+      DATA.screenshots=server.screenshots||[];
+      DATA.lastUpdated=server.lastUpdated;
     }
-  } catch(e) { $('loginErr').textContent='网络错误'; }
+
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    $('o_date').value=new Date().toISOString().slice(0,10);
+    renderAll();
+  }catch(e){$('loginErr').textContent='网络错误'}
 }
 
-// --- Queue (localStorage) ---
-function getQueue() {
-  try { return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]'); } catch(e) { return []; }
-}
-function saveQueue(q) { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
-function addToQueue(item) {
-  const q = getQueue();
-  q.push({ id: Date.now()+'_'+Math.random().toString(36).slice(2,6), createdAt: new Date().toISOString(), status: 'pending', ...item });
-  saveQueue(q);
-  renderQueue();
-}
-function removeFromQueue(id) {
-  saveQueue(getQueue().filter(i=>i.id!==id));
-  renderQueue();
-}
+// --- Save Position ---
+function savePosition(){
+  const name=$('f_name').value.trim();
+  const code=$('f_code').value.trim();
+  const cost=parseFloat($('f_cost').value)||0;
+  const value=parseFloat($('f_value').value)||0;
+  const shares=parseFloat($('f_shares').value)||0;
+  if(!name){$('formMsg').innerHTML='<span style="color:var(--red)">请填写名称</span>';return}
+  if(!cost&&!value){$('formMsg').innerHTML='<span style="color:var(--red)">请填写成本或市值</span>';return}
 
-function renderQueue() {
-  const q = getQueue();
-  const pending = q.filter(i=>i.status==='pending');
+  // Update existing or add new
+  const idx=DATA.positions.findIndex(p=>p.name===name||(code&&p.code===code));
+  const pos={name,code,totalCost:cost,currentValue:value||cost,totalShares:shares};
+  if(idx>=0) DATA.positions[idx]=pos;
+  else DATA.positions.push(pos);
 
-  // Banner
-  if (pending.length>0) {
-    $('pendingBanner').style.display='flex';
-    $('pendingCount').textContent = pending.length;
-  } else {
-    $('pendingBanner').style.display='none';
-  }
-  $('queueCount').textContent = q.length ? '('+q.length+'条)' : '';
-
-  const list = $('queueList');
-  if (!q.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:20px;text-align:center">队列为空，上传截图或输入文字后会自动添加到这里</div>';
-    return;
-  }
-
-  const sorted = [...q].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  list.innerHTML = sorted.map(item => {
-    const isPending = item.status==='pending';
-    const statusCls = isPending ? 'pc-pending' : 'pc-done';
-    const statusText = isPending ? '⏳ 待处理' : '✅ 已处理';
-    let icon, desc;
-    if (item.type==='screenshot') {
-      icon='📸'; desc=item.fileName||'截图';
-    } else if (item.type==='text') {
-      icon='✏️'; desc=item.content.slice(0,60)+(item.content.length>60?'...':'');
-    } else if (item.type==='voice') {
-      icon='🎙️'; desc=item.content.slice(0,60)+(item.content.length>60?'...':'');
-    } else {
-      icon='📄'; desc='未知';
-    }
-    return '<div class="queue-card">'
-      +'<div class="qc-content"><div class="qc-type" style="color:var(--accent-light)">'+icon+' '+item.type+'</div>'
-      +'<div class="qc-text">'+desc+'</div></div>'
-      +'<span class="queue-status '+statusCls+'">'+statusText+'</span>'
-      +'<span class="qc-time">'+fmtTime(item.createdAt)+'</span>'
-      +'<button class="qc-del" onclick="removeFromQueue(\''+item.id+'\')" title="删除">✕</button>'
-      +'</div>';
-  }).join('');
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal();
+  clearForm();
+  $('formMsg').innerHTML='<span style="color:var(--green)">✅ 已保存</span>';
+  renderAll();
 }
 
-// --- Screenshot Upload ---
-const uploadZone = $('uploadZone');
-const fileInput = $('fileInput');
-const folderInput = $('folderInput');
+function clearForm(){
+  ['f_name','f_code','f_cost','f_value','f_shares'].forEach(id=>$(id).value='');
+}
 
-uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('dragover'); });
-uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('dragover'));
-uploadZone.addEventListener('drop', e=>{
-  e.preventDefault(); uploadZone.classList.remove('dragover');
-  handleFiles(e.dataTransfer.files);
-});
-uploadZone.addEventListener('click', e=>{
-  if(e.target===uploadZone || e.target.classList.contains('uz-icon') || e.target.classList.contains('uz-main') || e.target.classList.contains('uz-sub'))
-    fileInput.click();
-});
-fileInput.addEventListener('change', ()=>handleFiles(fileInput.files));
-folderInput.addEventListener('change', ()=>handleFiles(folderInput.files));
+function editPosition(i){
+  const p=DATA.positions[i]; if(!p) return;
+  $('f_name').value=p.name||'';
+  $('f_code').value=p.code||'';
+  $('f_cost').value=p.totalCost||'';
+  $('f_value').value=p.currentValue||'';
+  $('f_shares').value=p.totalShares||'';
+  // Switch to input tab
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  $('tab-input').style.display='block';
+  document.querySelector('[data-tab="input"]').classList.add('active');
+  $('f_name').focus();
+}
 
-function handleFiles(fileList) {
-  const imgs = Array.from(fileList).filter(f=>f.type.startsWith('image/'));
-  if (!imgs.length) return;
-  const grid = $('previewGrid');
+function deletePosition(i){
+  if(!confirm('确定删除 '+DATA.positions[i].name+' ？')) return;
+  DATA.positions.splice(i,1);
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal(); renderAll();
+  toast('已删除',true);
+}
 
-  imgs.forEach(file=>{
-    if (file.size > 15*1024*1024) return; // skip >15MB
+// --- Save Operation ---
+function saveOperation(){
+  const type=$('o_type').value;
+  const name=$('o_name').value.trim();
+  const code=$('o_code').value.trim();
+  const amount=parseFloat($('o_amount').value)||0;
+  const date=$('o_date').value;
+  const reason=$('o_reason').value.trim();
+  if(!name){$('opMsg').innerHTML='<span style="color:var(--red)">请填写名称</span>';return}
+  if(!amount){$('opMsg').innerHTML='<span style="color:var(--red)">请填写金额</span>';return}
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      const dataUrl = e.target.result;
-
-      // Add to queue
-      addToQueue({
-        type: 'screenshot',
-        fileName: file.name,
-        dataUrl: dataUrl,
-        fileSize: file.size
-      });
-
-      // Preview card
-      const card = document.createElement('div');
-      card.className = 'preview-card';
-      card.innerHTML = '<img src="'+dataUrl+'" alt="'+file.name+'">'
-        +'<div class="pc-name">'+file.name+'</div>'
-        +'<div class="pc-status pc-pending">⏳ 待处理</div>';
-      grid.appendChild(card);
-    };
-    reader.readAsDataURL(file);
+  DATA.operations.push({
+    id:Date.now().toString(), type, name, code, amount, date,
+    time:new Date().toTimeString().slice(0,5), reason, source:'manual',
+    createdAt:new Date().toISOString()
   });
-
-  fileInput.value = '';
-  folderInput.value = '';
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal();
+  ['o_name','o_code','o_amount','o_reason'].forEach(id=>$(id).value='');
+  $('opMsg').innerHTML='<span style="color:var(--green)">✅ 已记录</span>';
+  renderAll();
+  toast('操作已记录',true);
 }
 
-// --- Text Input ---
-function submitText() {
-  const txt = $('textInput').value.trim();
-  if (!txt) return;
-  addToQueue({ type: 'text', content: txt });
-  $('textInput').value = '';
+function deleteOperation(id){
+  DATA.operations=DATA.operations.filter(o=>o.id!==id);
+  DATA.lastUpdated=new Date().toISOString();
+  saveLocal(); renderAll();
 }
-$('textInput').addEventListener('keydown', e=>{
-  if (e.key==='Enter' && (e.ctrlKey||e.metaKey)) submitText();
-});
 
-// --- Voice Input ---
-let recognition = null;
-let isRecording = false;
+// --- Quick Input Parse ---
+function parseQuickInput(){
+  const txt=$('quickInput').value.trim();
+  if(!txt){return}
 
-function toggleVoice() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    $('voiceStatus').textContent = '❌ 当前浏览器不支持语音识别，请使用 Chrome';
-    return;
+  // Simple NLP: detect type, amount, fund name
+  let type='买入';
+  if(/卖出|卖了|减仓|赎回/.test(txt)) type='卖出';
+  else if(/加仓/.test(txt)) type='加仓';
+  else if(/定投/.test(txt)) type='定投';
+
+  // Extract amount
+  const amtMatch=txt.match(/(\d+(?:\.\d+)?)\s*[万wW]/);
+  const amtMatch2=txt.match(/(\d+(?:\.\d+)?)\s*[元块]/);
+  const amtMatch3=txt.match(/(\d{4,}(?:\.\d+)?)/);
+  let amount=0;
+  if(amtMatch) amount=parseFloat(amtMatch[1])*10000;
+  else if(amtMatch2) amount=parseFloat(amtMatch2[1]);
+  else if(amtMatch3) amount=parseFloat(amtMatch3[1]);
+
+  // Extract fund name (after removing amount/type keywords)
+  let nameStr=txt.replace(/今天|昨天|买入|买了|卖出|卖了|加仓|减仓|定投|赎回|了|的/g,'')
+    .replace(/\d+(?:\.\d+)?\s*[万wW元块]/g,'').replace(/\d{4,}/g,'').trim();
+
+  $('o_type').value=type;
+  if(nameStr) $('o_name').value=nameStr;
+  if(amount) $('o_amount').value=amount;
+  $('o_date').value=new Date().toISOString().slice(0,10);
+
+  $('quickInput').value='';
+  toast('已解析到表单，请确认后提交',true);
+
+  // Switch focus to operation form
+  $('o_name').focus();
+}
+
+// --- Voice ---
+let recognition=null, isRecording=false;
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    $('voiceStatus').textContent='❌ 浏览器不支持语音，请用 Chrome';return;
   }
-  if (isRecording) {
-    recognition.stop();
-    return;
-  }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'zh-CN';
-  recognition.continuous = false;
-  recognition.interimResults = true;
-
-  recognition.onstart = ()=>{
-    isRecording = true;
-    $('voiceBtn').classList.add('recording');
-    $('voiceStatus').textContent = '🎙️ 正在录音，请说话...';
+  if(isRecording){recognition.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR(); recognition.lang='zh-CN'; recognition.continuous=false; recognition.interimResults=true;
+  recognition.onstart=()=>{isRecording=true;$('voiceBtn').classList.add('recording');$('voiceStatus').textContent='🎙️ 正在录音...'};
+  recognition.onresult=e=>{
+    let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;
+    $('quickInput').value=t;
+    if(e.results[0].isFinal)$('voiceStatus').textContent='✅ 识别完成，点击解析';
   };
-  recognition.onresult = e=>{
-    let transcript = '';
-    for (let i=0; i<e.results.length; i++) transcript += e.results[i][0].transcript;
-    $('textInput').value = transcript;
-    if (e.results[0].isFinal) {
-      $('voiceStatus').textContent = '✅ 识别完成，可编辑后发送';
-    }
-  };
-  recognition.onerror = e=>{
-    $('voiceStatus').textContent = '❌ 识别失败: '+e.error;
-    isRecording = false;
-    $('voiceBtn').classList.remove('recording');
-  };
-  recognition.onend = ()=>{
-    isRecording = false;
-    $('voiceBtn').classList.remove('recording');
-    if ($('textInput').value.trim()) {
-      $('voiceStatus').textContent = '✅ 识别完成，点击发送或继续编辑';
-    }
-  };
+  recognition.onerror=e=>{$('voiceStatus').textContent='❌ '+e.error;isRecording=false;$('voiceBtn').classList.remove('recording')};
+  recognition.onend=()=>{isRecording=false;$('voiceBtn').classList.remove('recording')};
   recognition.start();
 }
 
-// --- Render Portfolio Data ---
-function render() {
-  if (!RD) return;
-  const positions = RD.positions||[];
-  const ops = RD.operations||[];
+// --- Screenshots ---
+const uploadZone=$('uploadZone');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('dragover')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('dragover');handleFiles(e.dataTransfer.files)});
+uploadZone.addEventListener('click',e=>{
+  if(['uz-icon','uz-main','uz-sub'].some(c=>e.target.classList.contains(c))||e.target===uploadZone)
+    $('fileInput').click();
+});
+$('fileInput').addEventListener('change',function(){handleFiles(this.files)});
+$('folderInput').addEventListener('change',function(){handleFiles(this.files)});
 
-  let totalCost=0, totalValue=0;
-  positions.forEach(p=>{ totalCost+=(p.totalCost||0); totalValue+=(p.currentValue||0); });
-  const profit = totalValue-totalCost;
-  const rate = totalCost>0?(profit/totalCost*100):0;
-
-  $('totalAssets').textContent = positions.length ? fmtCny(totalValue) : '--';
-  const tp=$('totalProfit');
-  if(positions.length){ tp.textContent='收益 '+fmtCny(profit)+' ('+fmtPct(rate)+')'; tp.className='total-profit '+cls(profit); }
-  if(RD.lastUpdated) $('lastUpdate').textContent='更新于 '+new Date(RD.lastUpdated).toLocaleString('zh-CN');
-
-  $('s_cost').textContent = positions.length?fmtCny(totalCost):'--';
-  $('s_value').textContent = positions.length?fmtCny(totalValue):'--';
-  const sp=$('s_profit'); sp.textContent=positions.length?fmtCny(profit):'--'; sp.className='val '+cls(profit);
-  const sr=$('s_rate'); sr.textContent=positions.length?fmtPct(rate):'--'; sr.className='sub '+cls(rate);
-  $('s_count').textContent = positions.length||'--';
-
-  renderPositions(positions, totalValue);
-  renderAnalysis(RD.analysis);
-  renderOps(ops);
+function handleFiles(fileList){
+  const imgs=Array.from(fileList).filter(f=>f.type.startsWith('image/')&&f.size<15*1024*1024);
+  if(!imgs.length) return;
+  let count=0;
+  imgs.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      DATA.screenshots.push({fileName:file.name,dataUrl:e.target.result,addedAt:new Date().toISOString()});
+      count++;
+      if(count===imgs.length){DATA.lastUpdated=new Date().toISOString();saveLocal();renderScreenshots();toast(count+'张截图已保存',true)}
+    };
+    reader.readAsDataURL(file);
+  });
+  $('fileInput').value='';$('folderInput').value='';
 }
 
-function renderPositions(positions, totalValue) {
+function renderScreenshots(){
+  const grid=$('previewGrid');
+  grid.innerHTML=(DATA.screenshots||[]).map((s,i)=>
+    '<div class="preview-card"><img src="'+s.dataUrl+'" alt="'+s.fileName+'">'
+    +'<div class="pc-name">'+s.fileName+'</div>'
+    +'<button class="pc-del" onclick="delScreenshot('+i+')">✕</button></div>'
+  ).join('');
+}
+function delScreenshot(i){
+  DATA.screenshots.splice(i,1);saveLocal();renderScreenshots();
+}
+
+// --- Render All ---
+function renderAll(){
+  renderHeader();
+  renderPositions();
+  renderOps();
+  renderScreenshots();
+}
+
+function renderHeader(){
+  const positions=DATA.positions;
+  let totalCost=0,totalValue=0;
+  positions.forEach(p=>{totalCost+=(p.totalCost||0);totalValue+=(p.currentValue||0)});
+  const profit=totalValue-totalCost, rate=totalCost>0?(profit/totalCost*100):0;
+
+  $('totalAssets').textContent=positions.length?fmtCny(totalValue):'--';
+  const tp=$('totalProfit');
+  if(positions.length){tp.textContent='收益 '+fmtCny(profit)+' ('+fmtPct(rate)+')';tp.className='total-profit '+cls(profit)}
+  if(DATA.lastUpdated) $('lastUpdate').textContent='更新于 '+new Date(DATA.lastUpdated).toLocaleString('zh-CN');
+  $('s_cost').textContent=positions.length?fmtCny(totalCost):'--';
+  $('s_value').textContent=positions.length?fmtCny(totalValue):'--';
+  const sp=$('s_profit');sp.textContent=positions.length?fmtCny(profit):'--';sp.className='val '+cls(profit);
+  const sr=$('s_rate');sr.textContent=positions.length?fmtPct(rate):'--';sr.className='sub '+cls(rate);
+  $('s_count').textContent=positions.length||'--';
+}
+
+function renderPositions(){
+  const positions=DATA.positions;
+  let totalValue=0;positions.forEach(p=>totalValue+=(p.currentValue||0));
+
   const allocEl=$('allocSection');
   if(positions.length){
-    let bars=positions.map((pos,i)=>{
-      const pct=totalValue>0?(pos.currentValue/totalValue*100):0;
-      const c=COLORS[i%COLORS.length];
-      return '<div class="alloc-item"><div class="alloc-dot" style="background:'+c+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+c+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>';
-    }).join('');
-    allocEl.innerHTML='<div class="alloc-section"><div class="alloc-card"><h3>📊 仓位分布</h3><div class="alloc-bar">'+bars+'</div></div></div>';
-  } else { allocEl.innerHTML=''; }
+    allocEl.innerHTML='<div class="alloc-section"><div class="alloc-card"><h3>📊 仓位分布</h3><div class="alloc-bar">'+
+      positions.map((pos,i)=>{
+        const pct=totalValue>0?(pos.currentValue/totalValue*100):0;
+        const c=COLORS[i%COLORS.length];
+        return '<div class="alloc-item"><div class="alloc-dot" style="background:'+c+'"></div><div class="alloc-name">'+pos.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+c+'"></div></div><div class="alloc-pct">'+pct.toFixed(1)+'%</div></div>';
+      }).join('')+'</div></div></div>';
+  } else allocEl.innerHTML='';
 
   const tbl=$('positionsTable');
-  if(!positions.length){ tbl.innerHTML='<div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」上传截图或输入文字。</p></div>'; return; }
+  if(!positions.length){tbl.innerHTML='<div class="empty"><div class="em">📸</div><p>暂无持仓数据。<br>去「✏️ 录入操作」添加。</p></div>';return}
 
   let tCost=0,tVal=0;
-  positions.forEach(p=>{tCost+=(p.totalCost||0);tVal+=(p.currentValue||0);});
-  const tProfit=tVal-tCost, tRate=tCost>0?(tProfit/tCost*100):0;
+  positions.forEach(p=>{tCost+=(p.totalCost||0);tVal+=(p.currentValue||0)});
+  const tProfit=tVal-tCost,tRate=tCost>0?(tProfit/tCost*100):0;
 
-  let html='<table><thead><tr><th>基金/股票</th><th>持仓成本</th><th>当前市值</th><th>收益</th><th>收益率</th><th>仓位占比</th></tr></thead><tbody>';
+  let html='<table><thead><tr><th>基金/股票</th><th>持仓成本</th><th>当前市值</th><th>收益</th><th>收益率</th><th>占比</th><th>操作</th></tr></thead><tbody>';
   positions.forEach((pos,i)=>{
     const profit=(pos.currentValue||0)-(pos.totalCost||0);
     const pRate=pos.totalCost>0?(profit/pos.totalCost*100):0;
@@ -563,35 +628,31 @@ function renderPositions(positions, totalValue) {
       +'<td>'+fmtCny(pos.totalCost)+'</td><td>'+fmtCny(pos.currentValue)+'</td>'
       +'<td class="'+cls(profit)+'">'+fmtCny(profit)+'</td>'
       +'<td class="'+cls(pRate)+'">'+fmtPct(pRate)+'</td>'
-      +'<td>'+ratio.toFixed(1)+'%</td></tr>';
+      +'<td>'+ratio.toFixed(1)+'%</td>'
+      +'<td><div class="pos-actions"><button onclick="editPosition('+i+')">✏️</button><button class="del-btn" onclick="deletePosition('+i+')">🗑️</button></div></td></tr>';
   });
   html+='<tr style="background:rgba(124,92,252,.05)"><td><strong>合计</strong></td><td><strong>'+fmtCny(tCost)+'</strong></td><td><strong>'+fmtCny(tVal)+'</strong></td>'
-    +'<td class="'+cls(tProfit)+'"><strong>'+fmtCny(tProfit)+'</strong></td><td class="'+cls(tRate)+'"><strong>'+fmtPct(tRate)+'</strong></td><td>100%</td></tr>';
+    +'<td class="'+cls(tProfit)+'"><strong>'+fmtCny(tProfit)+'</strong></td><td class="'+cls(tRate)+'"><strong>'+fmtPct(tRate)+'</strong></td><td>100%</td><td></td></tr>';
   html+='</tbody></table>';
   tbl.innerHTML=html;
 }
 
-function renderAnalysis(analysis) {
-  const box=$('analysisBox');
-  box.innerHTML = analysis
-    ? '<div class="analysis-box">'+analysis.replace(/\n/g,'<br>')+'</div>'
-    : '<div class="empty"><div class="em">🧚</div><p>暂无投资建议。<br>上传持仓截图后 Mochi 将自动生成分析。</p></div>';
-}
-
-function renderOps(ops) {
+function renderOps(){
+  const ops=DATA.operations;
   const box=$('opsBox');
-  if(!ops.length){ box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。<br>去「✏️ 录入操作」上传截图或输入文字。</p></div>'; return; }
-  const sorted=[...ops].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!ops.length){box.innerHTML='<div class="empty"><div class="em">📋</div><p>暂无操作记录。</p></div>';return}
+  const sorted=[...ops].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   box.innerHTML=sorted.map(op=>{
     const isBuy=['买入','建仓','加仓','申购','定投'].includes(op.type);
     const tagCls=isBuy?'tag-buy':'tag-sell';
-    const src=op.source==='screenshot'?'📸 截图识别':op.source==='voice'?'🎙️ 语音':'✏️ 手动';
+    const src=op.source==='screenshot'?'📸':op.source==='voice'?'🎙️':'✏️';
     return '<div class="op-card"><div class="op-head"><div class="op-head-left">'
       +'<span class="op-type '+tagCls+'">'+op.type+'</span>'
       +'<span class="op-fund">'+op.name+'</span>'
       +'<span class="op-code">'+(op.code||'')+'</span></div>'
       +'<div class="op-amt '+(isBuy?'':'positive')+'">'+(isBuy?'-':'+')+fmtCny(op.amount)+'</div></div>'
-      +'<div class="op-meta">'+op.date+' '+(op.time||'')+' · '+src+'</div>'
+      +'<div class="op-meta">'+op.date+' '+(op.time||'')+' · '+src
+      +' <button class="qc-del" onclick="deleteOperation(\''+op.id+'\')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px" title="删除">✕</button></div>'
       +(op.reason?'<div class="op-reason">💡 '+op.reason+'</div>':'')
       +'</div>';
   }).join('');
