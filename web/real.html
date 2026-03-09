@@ -379,7 +379,7 @@ const LS_KEY='invest_spirit_real';
 // 检查是否已登录
 function checkLogin(){
   console.log('=== checkLogin running ===');
-  var isLoggedIn = sessionStorage.getItem('real_portfolio_logged_in');
+  var isLoggedIn = localStorage.getItem('real_portfolio_logged_in');
   console.log('isLoggedIn =', isLoggedIn, typeof isLoggedIn);
   console.log('loginPage element:', $('loginPage'));
   console.log('sessionStorage:', sessionStorage);
@@ -433,8 +433,8 @@ async function doLogin(){
     const hash=await sha256(pwd);
     if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
 
-    // 登录成功，存状态
-    sessionStorage.setItem('real_portfolio_logged_in','true');
+    // 登录成功，存状态（用 localStorage，持久化）
+    localStorage.setItem('real_portfolio_logged_in','true');
     $('loginPage').style.display='none';
     $('mainContent').style.display='block';
     loadData();
