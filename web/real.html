@@ -422,20 +422,25 @@ async function doLogin(){
     const hash=await sha256(pwd);
     if(hash!==server.passwordHash){$('loginErr').textContent='密码错误';$('pwdInput').value='';$('pwdInput').focus();return}
 
-    // 优先用 localStorage（刷新页面不丢失）
+    // 优先用 localStorage，如果没有就用服务器的
     const local=getLocal();
     if(local && local.positions && local.positions.length>0){
       DATA.positions=local.positions;
       DATA.operations=local.operations||[];
       DATA.screenshots=local.screenshots||[];
       DATA.lastUpdated=local.lastUpdated;
-    } else {
-      DATA.positions=server.positions||[];
+      console.log('Loaded from localStorage');
+    } else if(server.positions && server.positions.length>0){
+      DATA.positions=server.positions;
       DATA.operations=server.operations||[];
       DATA.screenshots=server.screenshots||[];
       DATA.lastUpdated=server.lastUpdated;
-      // 同步到 localStorage
-      saveLocal();
+      saveLocal(); // 同步到 localStorage
+      console.log('Loaded from server, saved to localStorage');
+    } else {
+      DATA.positions=[];
+      DATA.operations=[];
+      DATA.screenshots=[];
     }
 
     $('loginPage').style.display='none';
