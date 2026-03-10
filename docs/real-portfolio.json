@@ -75,7 +75,7 @@
     {
       "name": "华泰柏瑞质量成长混合C",
       "code": "011452",
-      "totalCost": 5460.33,
+      "totalCost": 5260.33,
       "currentValue": 6356.07
     },
     {
@@ -105,7 +105,7 @@
     {
       "name": "大成北证50成份指数C",
       "code": "024162",
-      "totalCost": 5668.75,
+      "totalCost": 5468.75,
       "currentValue": 4973.57
     },
     {
@@ -135,7 +135,7 @@
     {
       "name": "永赢半导体产业智选混合C",
       "code": "015968",
-      "totalCost": 3654.29,
+      "totalCost": 3454.29,
       "currentValue": 3706.4
     },
     {
@@ -159,7 +159,7 @@
     {
       "name": "信澳业绩驱动混合C",
       "code": "016371",
-      "totalCost": 3045.52,
+      "totalCost": 2845.52,
       "currentValue": 3155.56
     },
     {
@@ -199,5 +199,5 @@
       "currentValue": 67.12
     }
   ],
-  "lastUpdated": "2026-03-09T16:00:00.000Z"
+  "lastUpdated": "2026-03-09T15:00:00.000Z"
 }
