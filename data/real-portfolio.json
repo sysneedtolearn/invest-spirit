@@ -199,5 +199,6 @@
       "currentValue": 67.12
     }
   ],
-  "lastUpdated": "2026-03-09T15:00:00.000Z"
+  "lastUpdated": "2026-03-09T15:00:00.000Z",
+  "passwordHash": "dabd7cd1f757a3d71ed4f903cc91982a366f8b3f170b33b38d9be445b6375fdc"
 }
