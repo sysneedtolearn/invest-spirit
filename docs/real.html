@@ -389,21 +389,27 @@ function toast(msg,ok){
 let DATA={positions:[],operations:[],screenshots:[],lastUpdated:null};
 let LOGGED_IN=false;
 
-// Check if already logged in
-if(localStorage.getItem('realLoggedIn')==='1'){
-  LOGGED_IN=true;
-  const local=getLocal();
-  if(local){
-    DATA=local;
-    $('loginPage').style.display='none';
-    $('mainContent').style.display='block';
-    $('o_date').value=new Date().toISOString().slice(0,10);
-    renderAll();
-  } else {
-    // Has login flag but no data, show login
-    LOGGED_IN=false;
-    localStorage.removeItem('realLoggedIn');
+// Check if already logged in (run after DOM ready)
+function checkLoginStatus(){
+  if(localStorage.getItem('realLoggedIn')==='1'){
+    LOGGED_IN=true;
+    const local=getLocal();
+    if(local){
+      DATA=local;
+      $('loginPage').style.display='none';
+      $('mainContent').style.display='block';
+      $('o_date').value=new Date().toISOString().slice(0,10);
+      renderAll();
+    } else {
+      LOGGED_IN=false;
+      localStorage.removeItem('realLoggedIn');
+    }
   }
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',checkLoginStatus);
+}else{
+  checkLoginStatus();
 }
 
 function getLocal(){
