@@ -387,6 +387,24 @@ function toast(msg,ok){
 // --- Local Data ---
 // Merge: server JSON is base, localStorage overrides
 let DATA={positions:[],operations:[],screenshots:[],lastUpdated:null};
+let LOGGED_IN=false;
+
+// Check if already logged in
+if(localStorage.getItem('realLoggedIn')==='1'){
+  LOGGED_IN=true;
+  const local=getLocal();
+  if(local){
+    DATA=local;
+    $('loginPage').style.display='none';
+    $('mainContent').style.display='block';
+    $('o_date').value=new Date().toISOString().slice(0,10);
+    renderAll();
+  } else {
+    // Has login flag but no data, show login
+    LOGGED_IN=false;
+    localStorage.removeItem('realLoggedIn');
+  }
+}
 
 function getLocal(){
   try{return JSON.parse(localStorage.getItem(LS_KEY))||null}catch(e){return null}
@@ -439,6 +457,8 @@ async function doLogin(){
     $('loginPage').style.display='none';
     $('mainContent').style.display='block';
     $('o_date').value=new Date().toISOString().slice(0,10);
+    LOGGED_IN=true;
+    localStorage.setItem('realLoggedIn','1');
     renderAll();
   }catch(e){$('loginErr').textContent='网络错误'}
 }
