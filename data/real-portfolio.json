@@ -200,5 +200,16 @@
     }
   ],
   "lastUpdated": "2026-03-09T15:00:00.000Z",
-  "passwordHash": "dabd7cd1f757a3d71ed4f903cc91982a366f8b3f170b33b38d9be445b6375fdc"
+  "passwordHash": "dabd7cd1f757a3d71ed4f903cc91982a366f8b3f170b33b38d9be445b6375fdc",
+  "operations": [
+    {
+      "id": "1773125720468",
+      "type": "买入",
+      "name": "华泰柏瑞恒生科技指数ETF联接(QDII)C",
+      "code": "015311",
+      "amount": 200,
+      "date": "2026-03-10",
+      "source": "chat"
+    }
+  ]
 }
