@@ -563,7 +563,7 @@
         const rate = pos.totalCost > 0 ? (profit/pos.totalCost)*100 : 0;
         const ratio = (pos.currentValue / totalAssets * 100);
         const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COLORS[i%COLORS.length]};margin-right:8px"></span>`;
-        html += `<tr class="clickable-row" onclick="showChart('${pos.code}','${pos.name}')">
+        html += `<tr class="clickable-row" onclick="showFundDetail(${i})">
           <td>${dot}<span class="fname">${pos.name}</span><br><span class="fcode">${pos.code} · 净值 ${pos.currentNav}</span></td>
           <td>${fmtCny(pos.totalCost)}</td>
           <td>${fmtCny(pos.currentValue)}</td>
