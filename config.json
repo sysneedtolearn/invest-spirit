@@ -7,5 +7,57 @@
   "description": "投资精灵模拟盘 - 场外基金投资",
   "riskLevel": "auto",
   "operationTime": "14:30",
-  "notes": "目标：收益最大化。每次操作需说明原因，不操作也需说明原因。"
+  "notes": "目标：收益最大化。每次操作需说明原因，不操作也需说明原因。",
+  "dIng": [
+    {
+      "code": "008253",
+      "name": "华宝致远混合(QDII)A",
+      "amount": 100,
+      "frequency": "daily"
+    },
+    {
+      "code": "017437",
+      "name": "华宝纳斯达克精选股票(QDII)C",
+      "amount": 100,
+      "frequency": "daily"
+    },
+    {
+      "code": "006479",
+      "name": "广发纳斯达克100ETF联接(QDII)C",
+      "amount": 10,
+      "frequency": "daily"
+    },
+    {
+      "code": "005602",
+      "name": "汇安中短债债券C",
+      "amount": 160,
+      "frequency": "weekly_tue"
+    }
+  ],
+  "additions": [
+    {
+      "code": "024162",
+      "name": "大成北证50成份指数C",
+      "amount": 200,
+      "date": "2026-03-09"
+    },
+    {
+      "code": "015968",
+      "name": "永赢半导体产业智选混合C",
+      "amount": 200,
+      "date": "2026-03-09"
+    },
+    {
+      "code": "016371",
+      "name": "信澳业绩驱动混合C",
+      "amount": 200,
+      "date": "2026-03-09"
+    },
+    {
+      "code": "011452",
+      "name": "华泰柏瑞质量成长混合C",
+      "amount": 200,
+      "date": "2026-03-09"
+    }
+  ]
 }
