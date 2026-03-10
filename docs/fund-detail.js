@@ -43,6 +43,7 @@ function showFundDetail(idx) {
   if (typeof FUND_TRENDS !== 'undefined' && FUND_TRENDS[code]) {
     trendData = FUND_TRENDS[code];
   }
+  console.log('showFundDetail:', code, FUND_TRENDS, trendData);
   
   // 获取操作记录
   var ops = (DATA.operations || []).filter(function(o) { 
